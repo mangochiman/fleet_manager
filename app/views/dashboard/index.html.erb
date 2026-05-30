@@ -87,7 +87,7 @@
             <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.8rem;">Expenses</th>
             <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.8rem;">Profit</th>
             <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.8rem;">Performance</th>
-          </tr>
+           </tr>
         </thead>
         <tbody>
           <% @vehicle_performance.each do |vehicle| %>
@@ -176,89 +176,117 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  // Revenue vs Expenses Chart
-  const ctx1 = document.getElementById('revenueExpenseChart').getContext('2d');
-  new Chart(ctx1, {
-    type: 'line',
-    data: {
-      labels: <%= @months.to_json.html_safe %>,
-      datasets: [
-        {
-          label: 'Revenue',
-          data: <%= @revenues.to_json.html_safe %>,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
-          tension: 0.4,
-          fill: true,
-          pointRadius: 3,
-          pointHoverRadius: 5
-        },
-        {
-          label: 'Expenses',
-          data: <%= @expenses_chart.to_json.html_safe %>,
-          borderColor: '#ef4444',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
-          tension: 0.4,
-          fill: true,
-          pointRadius: 3,
-          pointHoverRadius: 5
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11 } } }
-      }
-    }
+  // Wait for DOM to be fully loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
   });
   
-  // Expense Breakdown by Category Chart (Pie Chart)
-  const ctx2 = document.getElementById('expenseBreakdownChart').getContext('2d');
-  const expenseData = <%= @expense_category_data.to_json.html_safe %>;
-  const expenseLabels = <%= @expense_category_labels.to_json.html_safe %>;
+  // Handle Turbo page loads
+  document.addEventListener('turbo:load', function() {
+    initializeCharts();
+  });
   
-  if (expenseData.length > 1 || expenseLabels[0] !== 'No Data Available') {
-    new Chart(ctx2, {
-      type: 'pie',
-      data: {
-        labels: expenseLabels,
-        datasets: [{
-          data: expenseData,
-          backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#6366f1'],
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { 
-            position: 'bottom', 
-            labels: { 
-              font: { size: 10 },
-              boxWidth: 10,
-              padding: 8
-            } 
+  function initializeCharts() {
+    // Revenue vs Expenses Chart
+    const revenueCanvas = document.getElementById('revenueExpenseChart');
+    if (revenueCanvas) {
+      // Destroy existing chart if it exists
+      if (revenueCanvas.chart) {
+        revenueCanvas.chart.destroy();
+      }
+      
+      const ctx1 = revenueCanvas.getContext('2d');
+      revenueCanvas.chart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: <%= @months.to_json.html_safe %>,
+          datasets: [
+            {
+              label: 'Revenue',
+              data: <%= @revenues.to_json.html_safe %>,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              tension: 0.4,
+              fill: true,
+              pointRadius: 3,
+              pointHoverRadius: 5
+            },
+            {
+              label: 'Expenses',
+              data: <%= @expenses_chart.to_json.html_safe %>,
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              tension: 0.4,
+              fill: true,
+              pointRadius: 3,
+              pointHoverRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { position: 'bottom', labels: { font: { size: 11 } } }
+          }
+        }
+      });
+    }
+    
+    // Expense Breakdown by Category Chart
+    const expenseCanvas = document.getElementById('expenseBreakdownChart');
+    if (expenseCanvas) {
+      // Destroy existing chart if it exists
+      if (expenseCanvas.chart) {
+        expenseCanvas.chart.destroy();
+      }
+      
+      const ctx2 = expenseCanvas.getContext('2d');
+      const expenseData = <%= @expense_category_data.to_json.html_safe %>;
+      const expenseLabels = <%= @expense_category_labels.to_json.html_safe %>;
+      
+      if (expenseData.length > 1 || expenseLabels[0] !== 'No Data Available') {
+        expenseCanvas.chart = new Chart(ctx2, {
+          type: 'pie',
+          data: {
+            labels: expenseLabels,
+            datasets: [{
+              data: expenseData,
+              backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#6366f1'],
+              borderWidth: 0
+            }]
           },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                const percentage = ((context.raw / total) * 100).toFixed(1);
-                const amount = new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(context.raw);
-                return `${context.label}: ${amount} (${percentage}%)`;
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { 
+                position: 'bottom', 
+                labels: { 
+                  font: { size: 10 },
+                  boxWidth: 10,
+                  padding: 8
+                } 
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    const percentage = ((context.raw / total) * 100).toFixed(1);
+                    const amount = new Intl.NumberFormat('en-MW', { style: 'currency', currency: 'MWK' }).format(context.raw);
+                    return `${context.label}: ${amount} (${percentage}%)`;
+                  }
+                }
               }
             }
           }
-        }
+        });
+      } else {
+        ctx2.font = '14px Inter';
+        ctx2.fillStyle = '#64748b';
+        ctx2.textAlign = 'center';
+        ctx2.fillText('No expense data available', ctx2.canvas.width / 2, ctx2.canvas.height / 2);
       }
-    });
-  } else {
-    ctx2.font = '14px Inter';
-    ctx2.fillStyle = '#64748b';
-    ctx2.textAlign = 'center';
-    ctx2.fillText('No expense data available', ctx2.canvas.width / 2, ctx2.canvas.height / 2);
+    }
   }
 </script>
