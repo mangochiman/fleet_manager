@@ -1,0 +1,49 @@
+<div class="page-header">
+  <h1>Sales Transactions</h1>
+  <p>Manage all customer sales and deliveries</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>All Sales</h3>
+    <%= link_to "New Sale", new_sale_path, class: "btn btn-primary btn-sm" %>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @sales.each do |sale| %>
+            <tr>
+              <td data-label="Transaction ID"><code><%= sale.transaction_id %></code></td>
+              <td data-label="Customer">
+                <strong><%= sale.customer_name %></strong><br>
+                <small><%= sale.customer_phone %></small>
+              </td>
+              <td data-label="Product"><%= sale.product.name %></td>
+              <td data-label="Amount" class="positive"><%= number_to_currency(sale.total_amount) %></td>
+              <td data-label="Status"><span class="badge badge-<%= sale.payment_status %>"><%= sale.payment_status.titleize %></span></td>
+              <td data-label="Date"><%= sale.transaction_date.strftime("%b %d, %Y") %></td>
+              <td data-label="Actions">
+                <%= link_to "View", sale, class: "btn btn-secondary btn-sm" %>
+                <% if sale.outstanding? %>
+                  <%= link_to "Mark Paid", mark_paid_sale_path(sale), method: :patch, class: "btn btn-primary btn-sm" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+       </table>
+    </div>
+  </div>
+</div>

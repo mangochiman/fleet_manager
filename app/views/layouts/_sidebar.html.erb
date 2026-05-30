@@ -1,0 +1,48 @@
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">🚛</div>
+    <h2>Fleet Manager</h2>
+    <p class="user-greeting"><%= current_user.name %></p>
+    <span class="user-role"><%= current_user.role_name %></span>
+  </div>
+  
+  <nav class="sidebar-nav">
+    <%= link_to dashboard_path, class: "nav-link #{'active' if current_page?(dashboard_path) || current_page?(root_path)}" do %>
+      <span class="nav-icon">📊</span>
+      <span>Dashboard</span>
+    <% end %>
+    
+    <%= link_to sales_path, class: "nav-link #{'active' if controller_name == 'sales'}" do %>
+      <span class="nav-icon">💰</span>
+      <span>Sales</span>
+    <% end %>
+    
+    <%= link_to expenses_path, class: "nav-link #{'active' if controller_name == 'expenses'}" do %>
+      <span class="nav-icon">💸</span>
+      <span>Expenses</span>
+    <% end %>
+    
+    <%= link_to vehicles_path, class: "nav-link #{'active' if controller_name == 'vehicles'}" do %>
+      <span class="nav-icon">🚚</span>
+      <span>Vehicles</span>
+    <% end %>
+    
+    <%= link_to products_path, class: "nav-link #{'active' if controller_name == 'products'}" do %>
+      <span class="nav-icon">📦</span>
+      <span>Products</span>
+    <% end %>
+    
+    <%= link_to reports_path, class: "nav-link #{'active' if controller_name == 'reports'}" do %>
+      <span class="nav-icon">📈</span>
+      <span>Reports</span>
+    <% end %>
+    
+    <div class="nav-divider"></div>
+    
+    <%= link_to destroy_user_session_path, method: :delete, class: "nav-link logout", data: { confirm: "Are you sure you want to logout?" } do %>
+      <span class="nav-icon">🚪</span>
+      <span>Logout</span>
+    <% end %>
+  </nav>
+</aside>

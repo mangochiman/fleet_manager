@@ -1,0 +1,33 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  transaction_id: MyString
+  user: one
+  vehicle: one
+  product: one
+  customer_name: MyString
+  customer_phone: MyString
+  quantity: 1
+  unit_price: 9.99
+  total_amount: 9.99
+  transaction_date: 2026-05-30
+  payment_status: MyString
+  proof_of_payment_number: MyString
+  proof_of_payment_image: MyString
+  notes: MyText
+
+two:
+  transaction_id: MyString
+  user: two
+  vehicle: two
+  product: two
+  customer_name: MyString
+  customer_phone: MyString
+  quantity: 1
+  unit_price: 9.99
+  total_amount: 9.99
+  transaction_date: 2026-05-30
+  payment_status: MyString
+  proof_of_payment_number: MyString
+  proof_of_payment_image: MyString
+  notes: MyText

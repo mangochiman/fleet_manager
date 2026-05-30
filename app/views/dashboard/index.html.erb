@@ -1,0 +1,219 @@
+<div class="dashboard-container">
+  <!-- Welcome Header -->
+  <div class="welcome-header">
+    <h1>Dashboard</h1>
+    <p>Welcome back, <%= current_user.name %>! Here's your fleet performance overview.</p>
+  </div>
+  
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-value"><%= number_to_currency(@total_revenue) %></div>
+      <div class="stat-label">Total Revenue</div>
+      <div class="stat-trend positive">↑ +12% from last month</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-value"><%= number_to_currency(@total_expenses) %></div>
+      <div class="stat-label">Total Expenses</div>
+      <div class="stat-trend negative">↓ Within budget</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-value"><%= number_to_currency(@net_profit) %></div>
+      <div class="stat-label">Net Profit</div>
+      <div class="stat-trend positive">↑ +8% growth</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-value"><%= number_to_currency(@outstanding_amount) %></div>
+      <div class="stat-label">Outstanding Payments</div>
+      <div class="stat-trend warning"><%= @outstanding_count %> pending transactions</div>
+    </div>
+  </div>
+  
+  <!-- Charts Row -->
+  <div class="charts-grid">
+    <div class="card">
+      <div class="card-header">
+        <h3>Revenue vs Expenses Trend</h3>
+      </div>
+      <div class="card-body">
+        <canvas id="revenueExpenseChart" height="300"></canvas>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h3>Outstanding Aging Analysis</h3>
+      </div>
+      <div class="card-body">
+        <canvas id="agingChart" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Vehicle Performance -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Vehicle Performance</h3>
+    </div>
+    <div class="card-body table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Revenue</th>
+            <th>Expenses</th>
+            <th>Profit</th>
+            <th>Performance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @vehicle_performance.each do |vehicle| %>
+            <tr>
+              <td><strong><%= vehicle[:name] %></strong></td>
+              <td class="positive"><%= number_to_currency(vehicle[:sales]) %></td>
+              <td class="negative"><%= number_to_currency(vehicle[:expenses]) %></td>
+              <td class="<%= vehicle[:profit] >= 0 ? 'positive' : 'negative' %>">
+                <%= number_to_currency(vehicle[:profit]) %>
+              </td>
+              <td>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: <%= vehicle[:profit] > 0 ? [((vehicle[:profit] / vehicle[:sales]) * 100), 100].min : 0 %>%"></div>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Recent Transactions -->
+  <div class="two-columns">
+    <div class="card">
+      <div class="card-header">
+        <h3>Recent Sales</h3>
+        <%= link_to "View All →", sales_path, class: "link" %>
+      </div>
+      <div class="card-body p-0">
+        <table class="data-table compact">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @recent_sales.each do |sale| %>
+              <tr>
+                <td><%= sale.transaction_id %></td>
+                <td><%= sale.customer_name %></td>
+                <td><%= number_to_currency(sale.total_amount) %></td>
+                <td>
+                  <span class="badge badge-<%= sale.payment_status %>">
+                    <%= sale.payment_status.titleize %>
+                  </span>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h3>Recent Expenses</h3>
+        <%= link_to "View All →", expenses_path, class: "link" %>
+      </div>
+      <div class="card-body p-0">
+        <table class="data-table compact">
+          <thead>
+            <tr>
+              <th>Vehicle</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @recent_expenses.each do |expense| %>
+              <tr>
+                <td><%= expense.vehicle.registration_number %></td>
+                <td><%= expense.category.titleize %></td>
+                <td class="negative"><%= number_to_currency(expense.amount) %></td>
+                <td><%= expense.expense_date.strftime("%b %d, %Y") %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Revenue vs Expenses Chart
+  const ctx1 = document.getElementById('revenueExpenseChart').getContext('2d');
+  new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: <%= @months.to_json.html_safe %>,
+      datasets: [
+        {
+          label: 'Revenue',
+          data: <%= @revenues.to_json.html_safe %>,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: 'Expenses',
+          data: <%= @expenses_chart.to_json.html_safe %>,
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          tension: 0.4,
+          fill: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+  
+  // Aging Analysis Chart
+  const ctx2 = document.getElementById('agingChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: ['0-30 days', '31-60 days', '61-90 days', '90+ days'],
+      datasets: [{
+        data: <%= @aging_data.to_json.html_safe %>,
+        backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#78350f'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+</script>

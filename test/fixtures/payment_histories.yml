@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  sale: one
+  user: one
+  old_status: MyString
+  new_status: MyString
+  proof_number: MyString
+  proof_image: MyString
+  notes: MyText
+
+two:
+  sale: two
+  user: two
+  old_status: MyString
+  new_status: MyString
+  proof_number: MyString
+  proof_image: MyString
+  notes: MyText
