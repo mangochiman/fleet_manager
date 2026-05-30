@@ -10,14 +10,20 @@ Rails.application.routes.draw do
   # Resources
   resources :sales do
     member do
-      patch "mark_paid"
-      patch "mark_banked"
+      get :mark_paid_form
+      patch :mark_paid
+      patch :mark_banked
+      get :proof
     end
   end
   
   resources :expenses
   resources :vehicles
-  resources :products
+  resources :products do
+    member do
+      patch :toggle_status
+    end
+  end
   
   # Reports
   get "reports", to: "reports#index"

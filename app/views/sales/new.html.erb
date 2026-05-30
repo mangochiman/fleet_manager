@@ -1,4 +1,93 @@
-<div>
-  <h1 class="font-bold text-4xl">Sales#new</h1>
-  <p>Find me in app/views/sales/new.html.erb</p>
+<div class="page-header">
+  <h1>New Sale Transaction</h1>
+  <p>Record a new customer sale or delivery</p>
 </div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Sale Details</h3>
+  </div>
+  <div class="card-body">
+    <%= form_with(model: @sale, class: "form") do |f| %>
+      <% if @sale.errors.any? %>
+        <div class="alert alert-danger">
+          <h4><%= pluralize(@sale.errors.count, "error") %> prohibited this sale from being saved:</h4>
+          <ul>
+            <% @sale.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      
+      <div class="grid grid-2">
+        <div class="form-group">
+          <%= f.label :customer_name, "Customer Name *" %>
+          <%= f.text_field :customer_name, class: "form-control", placeholder: "Enter customer name", required: true %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :customer_phone, "Customer Phone" %>
+          <%= f.telephone_field :customer_phone, class: "form-control", placeholder: "+1234567890" %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :product_id, "Product *" %>
+          <%= f.collection_select :product_id, @products, :id, :name, { prompt: "Select product" }, class: "form-control", required: true %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :vehicle_id, "Vehicle *" %>
+          <%= f.collection_select :vehicle_id, @vehicles, :id, :display_name, { prompt: "Select vehicle" }, class: "form-control", required: true %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :quantity, "Quantity *" %>
+          <%= f.number_field :quantity, class: "form-control", step: "any", placeholder: "Enter quantity", required: true, id: "quantity" %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :unit_price, "Unit Price *" %>
+          <%= f.number_field :unit_price, class: "form-control", step: "any", placeholder: "Price per unit", required: true, id: "unit_price" %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :transaction_date, "Transaction Date *" %>
+          <%= f.date_field :transaction_date, class: "form-control", value: Date.current, required: true %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :notes, "Notes" %>
+          <%= f.text_area :notes, class: "form-control", rows: 3, placeholder: "Additional notes about this sale..." %>
+        </div>
+        
+        <div class="form-group full-width" style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem;">
+          <strong>Total Amount: </strong>
+          <span id="total_amount_display" style="font-size: 1.25rem; color: #10b981;">KSh 0.00</span>
+        </div>
+      </div>
+      
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <%= f.submit "Create Sale", class: "btn btn-primary" %>
+        <%= link_to "Cancel", sales_path, class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Auto-calculate total amount
+  const quantityInput = document.getElementById('quantity');
+  const priceInput = document.getElementById('unit_price');
+  const totalDisplay = document.getElementById('total_amount_display');
+  
+  function calculateTotal() {
+    const quantity = parseFloat(quantityInput.value) || 0;
+    const price = parseFloat(priceInput.value) || 0;
+    const total = quantity * price;
+    totalDisplay.textContent = new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(total);
+  }
+  
+  quantityInput.addEventListener('input', calculateTotal);
+  priceInput.addEventListener('input', calculateTotal);
+</script>

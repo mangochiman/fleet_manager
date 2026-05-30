@@ -3,47 +3,127 @@
   <p>Manage all customer sales and deliveries</p>
 </div>
 
+<!-- Compact Summary Bar -->
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; padding: 1rem; background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+  <div style="flex: 1; min-width: 150px;">
+    <div style="font-size: 0.75rem; color: #64748b;">Total Revenue</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@total_sales) %></div>
+  </div>
+  <div style="flex: 1; min-width: 150px;">
+    <div style="font-size: 0.75rem; color: #64748b;">Outstanding</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #f59e0b;"><%= number_to_currency(@outstanding_sales) %></div>
+  </div>
+  <div style="flex: 1; min-width: 150px;">
+    <div style="font-size: 0.75rem; color: #64748b;">Collected</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@paid_sales) %></div>
+  </div>
+  <div style="flex: 1; min-width: 150px;">
+    <div style="font-size: 0.75rem; color: #64748b;">Transactions</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @sales.total_entries %></div>
+  </div>
+</div>
+
+<!-- Search and Filter Bar -->
+<div style="margin-bottom: 1.5rem;">
+  <%= form_tag sales_path, method: :get, style: "display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;" do %>
+    <%= text_field_tag :search, params[:search], placeholder: "Search by customer or transaction ID...", class: "form-control", style: "flex: 1; min-width: 200px;" %>
+    <%= select_tag :status, options_for_select([["All Status", ""], ["Outstanding", "outstanding"], ["Paid", "paid"], ["Banked", "banked"]], params[:status]), class: "form-control", style: "width: auto; min-width: 120px;" %>
+    
+    <!-- Per Page Selector -->
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <span style="font-size: 0.875rem; color: #64748b;">Show:</span>
+      <%= select_tag :per_page, options_for_select([10, 20, 50, 100], params[:per_page] || 20), class: "form-control", style: "width: auto; min-width: 70px;", onchange: "this.form.submit()" %>
+    </div>
+    
+    <%= submit_tag "Filter", class: "btn btn-primary btn-sm" %>
+    <%= link_to "Clear", sales_path, class: "btn btn-secondary btn-sm" %>
+  <% end %>
+</div>
+
 <div class="card">
   <div class="card-header">
     <h3>All Sales</h3>
-    <%= link_to "New Sale", new_sale_path, class: "btn btn-primary btn-sm" %>
+    <div style="display: flex; gap: 0.5rem;">
+      <%= link_to "📊 Export", "#", class: "btn btn-secondary btn-sm" %>
+      <%= link_to "+ New Sale", new_sale_path, class: "btn btn-primary btn-sm" %>
+    </div>
   </div>
   <div class="card-body p-0">
     <div class="table-responsive">
       <table class="data-table">
         <thead>
           <tr>
-            <th>Transaction ID</th>
+            <th>ID</th>
             <th>Customer</th>
             <th>Product</th>
             <th>Amount</th>
             <th>Status</th>
             <th>Date</th>
-            <th>Actions</th>
+            <th style="width: 120px;">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% @sales.each do |sale| %>
             <tr>
-              <td data-label="Transaction ID"><code><%= sale.transaction_id %></code></td>
+              <td data-label="ID"><code><%= sale.transaction_id %></code></td>
               <td data-label="Customer">
-                <strong><%= sale.customer_name %></strong><br>
-                <small><%= sale.customer_phone %></small>
+                <%= sale.customer_name %><br>
+                <small style="color: #64748b;"><%= sale.customer_phone %></small>
               </td>
-              <td data-label="Product"><%= sale.product.name %></td>
+              <td data-label="Product"><%= sale.product.name %><br><small><%= sale.quantity %> <%= sale.product.unit %></small></td>
               <td data-label="Amount" class="positive"><%= number_to_currency(sale.total_amount) %></td>
-              <td data-label="Status"><span class="badge badge-<%= sale.payment_status %>"><%= sale.payment_status.titleize %></span></td>
-              <td data-label="Date"><%= sale.transaction_date.strftime("%b %d, %Y") %></td>
-              <td data-label="Actions">
+              <td data-label="Status">
+                <span class="badge badge-<%= sale.payment_status %>" style="white-space: nowrap;">
+                  <%= sale.payment_status.titleize %>
+                </span>
+              </td>
+              <td data-label="Date"><%= sale.transaction_date.strftime("%d/%m/%y") %></td>
+              <td data-label="Actions" style="white-space: nowrap;">
                 <%= link_to "View", sale, class: "btn btn-secondary btn-sm" %>
                 <% if sale.outstanding? %>
-                  <%= link_to "Mark Paid", mark_paid_sale_path(sale), method: :patch, class: "btn btn-primary btn-sm" %>
+                  <%= link_to "Mark Paid", mark_paid_form_sale_path(sale), class: "btn btn-primary btn-sm" %>
+                <% elsif sale.paid? %>
+                  <span class="badge badge-paid" style="font-size: 0.7rem;">Awaiting Bank</span>
+                <% elsif sale.banked? %>
+                  <span class="badge badge-banked" style="font-size: 0.7rem;">Complete</span>
                 <% end %>
               </td>
             </tr>
           <% end %>
         </tbody>
-       </table>
+      </table>
     </div>
+    
+    <% if @sales.empty? %>
+      <div style="text-align: center; padding: 3rem; color: #64748b;">
+        No sales found. <%= link_to "Create your first sale", new_sale_path %>.
+      </div>
+    <% end %>
   </div>
 </div>
+
+<!-- Pagination with Info -->
+<% if @sales.total_entries > 0 %>
+  <div style="margin-top: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div style="font-size: 0.875rem; color: #64748b;">
+        Showing 
+        <% if @sales.total_pages > 1 %>
+          <%= @sales.offset + 1 %> - <%= [@sales.offset + @sales.length, @sales.total_entries].min %> of <%= @sales.total_entries %> transactions
+        <% else %>
+          all <%= @sales.total_entries %> transactions
+        <% end %>
+      </div>
+      
+      <% if @sales.total_pages > 1 %>
+        <div style="display: flex; justify-content: center;">
+          <%= will_paginate @sales, 
+                renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+                previous_label: '← Previous',
+                next_label: 'Next →',
+                class: 'pagination' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

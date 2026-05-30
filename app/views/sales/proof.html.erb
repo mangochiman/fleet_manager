@@ -1,0 +1,84 @@
+<div class="page-header">
+  <h1>Proof of Payment</h1>
+  <p>Transaction: <code><%= @sale.transaction_id %></code></p>
+</div>
+
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+  <%= link_to "← Back to Sales", sales_path, class: "btn btn-secondary btn-sm" %>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Payment Information</h3>
+  </div>
+  <div class="card-body">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <div style="font-size: 0.75rem; color: #64748b;">Customer Name</div>
+        <div style="font-weight: 600;"><%= @sale.customer_name %></div>
+      </div>
+      <div>
+        <div style="font-size: 0.75rem; color: #64748b;">Amount Paid</div>
+        <div style="font-weight: 600; color: #10b981;"><%= number_to_currency(@sale.total_amount) %></div>
+      </div>
+      <div>
+        <div style="font-size: 0.75rem; color: #64748b;">Payment Reference</div>
+        <div><code><%= @payment_history.proof_number %></code></div>
+      </div>
+      <div>
+        <div style="font-size: 0.75rem; color: #64748b;">Payment Date</div>
+        <div><%= @payment_history.created_at.strftime("%B %d, %Y at %I:%M %p") %></div>
+      </div>
+      <div>
+        <div style="font-size: 0.75rem; color: #64748b;">Recorded By</div>
+        <div><%= @payment_history.user&.name || 'System' %></div>
+      </div>
+      <% if @payment_history.notes.present? %>
+        <div>
+          <div style="font-size: 0.75rem; color: #64748b;">Notes</div>
+          <div><%= @payment_history.notes %></div>
+        </div>
+      <% end %>
+    </div>
+
+    <hr style="margin: 1rem 0; border: none; border-top: 1px solid #e2e8f0;">
+
+    <h3 style="font-size: 1rem; margin-bottom: 1rem;">Payment Proof Attachment</h3>
+    
+    <% if @payment_history.proof_attachment.attached? %>
+      <% content_type = @payment_history.proof_attachment.content_type %>
+      
+      <% if content_type && content_type.start_with?('image/') %>
+        <!-- Display Image -->
+        <div style="text-align: center; background: #f8fafc; padding: 1rem; border-radius: 0.5rem;">
+          <%= image_tag @payment_history.proof_attachment, style: "max-width: 100%; max-height: 500px; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" %>
+        </div>
+        <div style="margin-top: 1rem; text-align: center;">
+          <%= link_to "Download Image", url_for(@payment_history.proof_attachment), class: "btn btn-primary btn-sm", download: true %>
+        </div>
+      <% elsif content_type == 'application/pdf' %>
+        <!-- Display PDF -->
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem;">
+          <embed src="<%= url_for(@payment_history.proof_attachment) %>" type="application/pdf" style="width: 100%; height: 600px; border-radius: 0.5rem;">
+        </div>
+        <div style="margin-top: 1rem; text-align: center; display: flex; gap: 0.5rem; justify-content: center;">
+          <%= link_to "Download PDF", url_for(@payment_history.proof_attachment), class: "btn btn-primary btn-sm", download: true %>
+          <%= link_to "View Full Screen", url_for(@payment_history.proof_attachment), target: "_blank", class: "btn btn-secondary btn-sm" %>
+        </div>
+      <% else %>
+        <!-- Other file types -->
+        <div style="text-align: center; padding: 2rem; background: #f8fafc; border-radius: 0.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+          <p>File: <%= @payment_history.proof_attachment.filename %></p>
+          <p style="font-size: 0.875rem; color: #64748b;">Type: <%= content_type || 'Unknown' %></p>
+          <%= link_to "Download File", url_for(@payment_history.proof_attachment), class: "btn btn-primary btn-sm", download: true %>
+        </div>
+      <% end %>
+    <% else %>
+      <div style="text-align: center; padding: 3rem; background: #f8fafc; border-radius: 0.5rem; color: #64748b;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📷</div>
+        <p>No proof of payment uploaded for this transaction.</p>
+      </div>
+    <% end %>
+  </div>
+</div>

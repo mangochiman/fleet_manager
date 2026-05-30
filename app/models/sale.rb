@@ -15,20 +15,27 @@ class Sale < ApplicationRecord
   validates :transaction_date, presence: true
   validates :payment_status, inclusion: { in: %w[outstanding paid banked] }
 
-  # Status constants
-  STATUSES = {
-    'outstanding' => 'outstanding',
-    'paid' => 'paid',
-    'banked' => 'banked'
-  }.freeze
+  # Status helper methods
+  def outstanding?
+    payment_status == 'outstanding'
+  end
 
+  def paid?
+    payment_status == 'paid'
+  end
+
+  def banked?
+    payment_status == 'banked'
+  end
+
+  # Scopes
   scope :outstanding, -> { where(payment_status: 'outstanding') }
   scope :paid, -> { where(payment_status: 'paid') }
   scope :banked, -> { where(payment_status: 'banked') }
   scope :by_date_range, ->(start_date, end_date) { where(transaction_date: start_date..end_date) }
 
-  def mark_as_paid!(proof_number: nil, proof_image: nil, updated_by: nil)
-    return if payment_status == 'paid'
+  def mark_as_paid!(proof_number: nil, proof_image: nil, notes: nil, updated_by: nil)
+    return if paid?
     
     old_status = payment_status
     update!(
@@ -42,12 +49,13 @@ class Sale < ApplicationRecord
       old_status: old_status,
       new_status: 'paid',
       proof_number: proof_number,
-      proof_image: proof_image
+      proof_image: proof_image,
+      notes: notes
     )
   end
 
-  def mark_as_banked!(updated_by: nil)
-    return if payment_status == 'banked'
+  def mark_as_banked!(notes: nil, updated_by: nil)
+    return if banked?
     
     old_status = payment_status
     update!(payment_status: 'banked')
@@ -55,7 +63,8 @@ class Sale < ApplicationRecord
     payment_histories.create!(
       user: updated_by,
       old_status: old_status,
-      new_status: 'banked'
+      new_status: 'banked',
+      notes: notes
     )
   end
 

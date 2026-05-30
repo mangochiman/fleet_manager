@@ -1,0 +1,69 @@
+<div class="page-header">
+  <h1>Mark Payment as Paid</h1>
+  <p>Transaction: <code><%= @sale.transaction_id %></code></p>
+  <p>Customer: <strong><%= @sale.customer_name %></strong></p>
+  <p>Amount: <strong class="positive"><%= number_to_currency(@sale.total_amount) %></strong></p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Payment Proof Details</h3>
+  </div>
+  <div class="card-body">
+    <%= form_tag mark_paid_sale_path(@sale), method: :patch, multipart: true do %>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <%= label_tag :proof_number, "Transaction / Reference Number *" %>
+          <%= text_field_tag :proof_number, nil, class: "form-control", placeholder: "e.g., M-PESA Confirmation Code, Bank Reference", required: true %>
+          <small style="color: #64748b;">Enter the payment reference number</small>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :proof_image, "Upload Proof" %>
+          <%= file_field_tag :proof_image, class: "form-control", accept: "image/*,application/pdf" %>
+          <small style="color: #64748b;">Upload screenshot, receipt, or payment confirmation (Optional)</small>
+        </div>
+        
+        <div class="form-group full-width">
+          <%= label_tag :notes, "Additional Notes" %>
+          <%= text_area_tag :notes, nil, class: "form-control", rows: 3, placeholder: "Any additional information about this payment...", style: "resize: vertical;" %>
+          <small style="color: #64748b;">Add any relevant details about this payment</small>
+        </div>
+      </div>
+      
+      <!-- Payment Summary Box -->
+      <div style="margin-top: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border-left: 3px solid #10b981;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: #64748b;">Transaction ID:</span>
+          <span><code><%= @sale.transaction_id %></code></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: #64748b;">Amount Due:</span>
+          <span class="positive"><strong><%= number_to_currency(@sale.total_amount) %></strong></span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: #64748b;">Payment Status:</span>
+          <span class="badge badge-outstanding">Pending Payment</span>
+        </div>
+      </div>
+      
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <%= submit_tag "✓ Confirm Payment", class: "btn btn-primary" %>
+        <%= link_to "Cancel", @sale, class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Instructions Card -->
+<div style="margin-top: 1rem; padding: 1rem; background: #fef3c7; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
+  <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+    <span style="font-size: 1.25rem;">ℹ️</span>
+    <div style="font-size: 0.875rem; color: #92400e;">
+      <strong>Important:</strong> 
+      Please ensure you have received the payment before confirming. 
+      The payment reference number will be recorded for audit purposes.
+      You can upload a screenshot or photo of the payment confirmation as proof.
+    </div>
+  </div>
+</div>

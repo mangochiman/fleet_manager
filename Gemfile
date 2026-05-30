@@ -3,7 +3,8 @@ source "https://rubygems.org"
 gem 'devise'
 gem 'image_processing', '~> 1.2'
 gem 'activestorage-validator'
-gem 'pagy'
+gem 'will_paginate'
+gem 'will_paginate-bootstrap-style'
 gem 'ransack'
 # Export to Excel
 gem 'caxlsx'
