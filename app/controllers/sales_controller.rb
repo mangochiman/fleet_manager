@@ -44,9 +44,15 @@ class SalesController < ApplicationController
     @sale = Sale.new(sale_params)
     @sale.user_id = current_user.id
     
+    # Get product price and set unit_price (auto-populated, read-only)
+    if params[:sale][:product_id].present?
+      product = Product.find(params[:sale][:product_id])
+      @sale.unit_price = product.price
+    end
+    
     # Auto-calculate total amount
-    if params[:sale][:quantity].present? && params[:sale][:unit_price].present?
-      @sale.total_amount = params[:sale][:quantity].to_f * params[:sale][:unit_price].to_f
+    if params[:sale][:quantity].present?
+      @sale.total_amount = params[:sale][:quantity].to_f * @sale.unit_price
     end
     
     if @sale.save
@@ -64,6 +70,17 @@ class SalesController < ApplicationController
   end
   
   def update
+    # Get product price if product changed
+    if params[:sale][:product_id].present? && params[:sale][:product_id] != @sale.product_id.to_s
+      product = Product.find(params[:sale][:product_id])
+      @sale.unit_price = product.price
+    end
+    
+    # Recalculate total amount
+    if params[:sale][:quantity].present?
+      params[:sale][:total_amount] = params[:sale][:quantity].to_f * @sale.unit_price
+    end
+    
     if @sale.update(sale_params)
       redirect_to @sale, notice: 'Sale was successfully updated.'
     else

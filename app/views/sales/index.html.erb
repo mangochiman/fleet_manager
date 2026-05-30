@@ -96,7 +96,8 @@
     <div class="card-header">
       <h3>All Sales</h3>
       <div style="display: flex; gap: 0.5rem;">
-        <%= link_to "📊 Export", "#", class: "btn btn-secondary btn-sm" %>
+        <%= link_to "📊 Export Excel", exports_sales_path(search: params[:search], status: params[:status], format: :xlsx), class: "btn btn-secondary btn-sm" %>
+        <%= link_to "📄 Export CSV", exports_sales_path(search: params[:search], status: params[:status], format: :csv), class: "btn btn-secondary btn-sm" %>
         <%= link_to "+ New Sale", new_sale_path, class: "btn btn-primary btn-sm" %>
       </div>
     </div>

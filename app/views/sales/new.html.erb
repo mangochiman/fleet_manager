@@ -33,22 +33,30 @@
         
         <div class="form-group">
           <%= f.label :product_id, "Product *" %>
-          <%= f.collection_select :product_id, @products, :id, :name, { prompt: "Select product" }, class: "form-control", required: true %>
+          <%= f.collection_select :product_id, @products, :id, :name, 
+                { prompt: "Select product" }, 
+                { class: "form-control", required: true, id: "product_select" } %>
         </div>
         
         <div class="form-group">
           <%= f.label :vehicle_id, "Vehicle *" %>
-          <%= f.collection_select :vehicle_id, @vehicles, :id, :display_name, { prompt: "Select vehicle" }, class: "form-control", required: true %>
+          <%= f.collection_select :vehicle_id, @vehicles, :id, :display_name, 
+                { prompt: "Select vehicle" }, 
+                { class: "form-control", required: true } %>
         </div>
         
         <div class="form-group">
           <%= f.label :quantity, "Quantity *" %>
-          <%= f.number_field :quantity, class: "form-control", step: "any", placeholder: "Enter quantity", required: true, id: "quantity" %>
+          <%= f.number_field :quantity, class: "form-control", step: "any", 
+                placeholder: "Enter quantity", required: true, id: "sale_quantity" %>
         </div>
         
         <div class="form-group">
           <%= f.label :unit_price, "Unit Price *" %>
-          <%= f.number_field :unit_price, class: "form-control", step: "any", placeholder: "Price per unit", required: true, id: "unit_price" %>
+          <%= f.number_field :unit_price, class: "form-control", step: "any", 
+                placeholder: "Auto-filled from product", required: true, 
+                id: "sale_unit_price", readonly: true, style: "background-color: #f1f5f9;" %>
+          <small style="color: #64748b;">Price is automatically set from product</small>
         </div>
         
         <div class="form-group">
@@ -56,14 +64,14 @@
           <%= f.date_field :transaction_date, class: "form-control", value: Date.current, required: true %>
         </div>
         
-        <div class="form-group">
+        <div class="form-group full-width">
           <%= f.label :notes, "Notes" %>
           <%= f.text_area :notes, class: "form-control", rows: 3, placeholder: "Additional notes about this sale..." %>
         </div>
         
         <div class="form-group full-width" style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem;">
           <strong>Total Amount: </strong>
-          <span id="total_amount_display" style="font-size: 1.25rem; color: #10b981;">KSh 0.00</span>
+          <span id="total_amount_display" style="font-size: 1.25rem; color: #10b981;">MK 0.00</span>
         </div>
       </div>
       
@@ -76,18 +84,49 @@
 </div>
 
 <script>
-  // Auto-calculate total amount
-  const quantityInput = document.getElementById('quantity');
-  const priceInput = document.getElementById('unit_price');
+  // Product data with prices
+  const productPrices = {
+    <% @products.each do |product| %>
+      <%= product.id %>: <%= product.price %>,
+    <% end %>
+  };
+  
+  // Get form elements
+  const productSelect = document.getElementById('product_select');
+  const quantityInput = document.getElementById('sale_quantity');
+  const unitPriceInput = document.getElementById('sale_unit_price');
   const totalDisplay = document.getElementById('total_amount_display');
   
-  function calculateTotal() {
-    const quantity = parseFloat(quantityInput.value) || 0;
-    const price = parseFloat(priceInput.value) || 0;
-    const total = quantity * price;
-    totalDisplay.textContent = new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(total);
+  // Function to update unit price based on selected product
+  function updateUnitPrice() {
+    const productId = productSelect.value;
+    if (productId && productPrices[productId]) {
+      unitPriceInput.value = productPrices[productId];
+      unitPriceInput.style.backgroundColor = '#f1f5f9';
+      calculateTotal();
+    } else {
+      unitPriceInput.value = '';
+      calculateTotal();
+    }
   }
   
+  // Function to calculate total amount
+  function calculateTotal() {
+    const quantity = parseFloat(quantityInput.value) || 0;
+    const unitPrice = parseFloat(unitPriceInput.value) || 0;
+    const total = quantity * unitPrice;
+    totalDisplay.textContent = new Intl.NumberFormat('en-MW', { 
+      style: 'currency', 
+      currency: 'MWK' 
+    }).format(total);
+  }
+  
+  // Event listeners
+  productSelect.addEventListener('change', updateUnitPrice);
   quantityInput.addEventListener('input', calculateTotal);
-  priceInput.addEventListener('input', calculateTotal);
+  
+  // Initialize if product is pre-selected
+  if (productSelect.value) {
+    updateUnitPrice();
+  }
 </script>

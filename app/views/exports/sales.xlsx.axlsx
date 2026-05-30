@@ -1,0 +1,37 @@
+wb = xlsx_package.workbook
+
+wb.add_worksheet(name: "Sales Export") do |sheet|
+  # Header
+  sheet.add_row ["Sales Report - Fleet Management System"]
+  sheet.add_row ["Generated: #{Time.current.strftime('%B %d, %Y at %I:%M %p')}"]
+  sheet.add_row []
+  
+  # Column Headers
+  sheet.add_row [
+    "Transaction ID", "Date", "Customer Name", "Customer Phone", 
+    "Product", "Quantity", "Unit", "Unit Price", "Total Amount", 
+    "Payment Status", "Vehicle", "Recorded By"
+  ]
+  
+  # Data rows
+  @sales.each do |sale|
+    sheet.add_row [
+      sale.transaction_id,
+      sale.transaction_date.strftime("%Y-%m-%d"),
+      sale.customer_name,
+      sale.customer_phone,
+      sale.product.name,
+      sale.quantity,
+      sale.product.unit,
+      sale.unit_price,
+      sale.total_amount,
+      sale.payment_status.titleize,
+      sale.vehicle.registration_number,
+      sale.user.name
+    ]
+  end
+  
+  # Totals row
+  sheet.add_row []
+  sheet.add_row ["Total Sales", "", "", "", "", "", "", "", @sales.sum(:total_amount), "", "", ""]
+end
