@@ -14,6 +14,8 @@ Rails.application.routes.draw do
       patch :mark_paid
       patch :mark_banked
       get :proof
+      get :record_payment_form
+      patch :record_payment
     end
   end
   

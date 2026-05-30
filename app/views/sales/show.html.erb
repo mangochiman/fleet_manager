@@ -68,9 +68,29 @@
     </div>
   </div>
 
-  <!-- Notes & Actions -->
+  <!-- Payment Progress & Actions -->
   <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">NOTES & ACTIONS</h3>
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">PAYMENT PROGRESS</h3>
+    
+    <!-- Payment Progress Bar -->
+    <div style="margin-bottom: 1rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+        <span style="color: #64748b;">Amount Paid:</span>
+        <span class="positive"><strong><%= number_to_currency(@sale.paid_amount || 0) %></strong></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+        <span style="color: #64748b;">Remaining Balance:</span>
+        <span class="negative"><strong><%= number_to_currency(@sale.remaining_balance) %></strong></span>
+      </div>
+      <div style="background: #e2e8f0; border-radius: 0.5rem; overflow: hidden; margin-top: 0.5rem;">
+        <div style="width: <%= @sale.payment_percentage %>%; height: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: width 0.3s;"></div>
+      </div>
+      <div style="text-align: center; margin-top: 0.5rem; font-size: 0.75rem; color: #64748b;">
+        <%= @sale.payment_percentage %>% Complete
+      </div>
+    </div>
+
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem; margin-top: 1rem;">NOTES & ACTIONS</h3>
     <% if @sale.notes.present? %>
       <div style="margin-bottom: 1rem; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem; font-size: 0.875rem;">
         <%= @sale.notes %>
@@ -81,8 +101,13 @@
       </div>
     <% end %>
     
-    <% if @sale.outstanding? %>
-      <%= link_to "✓ Mark as Paid", mark_paid_form_sale_path(@sale), class: "btn btn-primary btn-sm", style: "width: 100%; text-align: center;" %>
+    <!-- Action Buttons -->
+    <% if @sale.outstanding? || @sale.partial? %>
+      <%= link_to "💰 Record Payment", record_payment_form_sale_path(@sale), class: "btn btn-primary btn-sm", style: "width: 100%; text-align: center; margin-bottom: 0.5rem;" %>
+    <% end %>
+    
+    <% if @sale.outstanding? && !@sale.partial? %>
+      <%= link_to "✓ Mark as Fully Paid", mark_paid_form_sale_path(@sale), class: "btn btn-secondary btn-sm", style: "width: 100%; text-align: center;" %>
     <% elsif @sale.paid? %>
       <%= button_to "🏦 Mark as Banked", mark_banked_sale_path(@sale), method: :patch, class: "btn btn-primary btn-sm", style: "width: 100%; text-align: center;", form: { data: { turbo_confirm: "Has this been deposited to the bank?" } } %>
     <% elsif @sale.banked? %>
@@ -105,6 +130,7 @@
             <tr style="border-bottom: 1px solid #e2e8f0;">
               <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Date & Time</th>
               <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Status Change</th>
+              <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Amount</th>
               <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Reference</th>
               <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Proof</th>
               <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">By</th>
@@ -121,6 +147,13 @@
                   <span class="badge badge-<%= history.new_status %>"><%= history.new_status.titleize %></span>
                 </td>
                 <td style="padding: 0.5rem; font-size: 0.75rem;">
+                  <% if history.notes && history.notes.match(/Payment amount: (.*)/) %>
+                    <%= $1 %>
+                  <% else %>
+                    —
+                  <% end %>
+                </td>
+                <td style="padding: 0.5rem; font-size: 0.75rem;">
                   <% if history.proof_number.present? %>
                     <code style="font-size: 0.7rem;"><%= history.proof_number %></code>
                   <% else %>
@@ -135,7 +168,7 @@
                   <% end %>
                 </td>
                 <td style="padding: 0.5rem; font-size: 0.75rem;"><%= history.user&.name || 'System' %></td>
-                <td style="padding: 0.5rem; font-size: 0.75rem;"><%= history.notes || '—' %></td>
+                <td style="padding: 0.5rem; font-size: 0.75rem;"><%= history.notes&.gsub(/Payment amount: .*/, '') || '—' %></td>
               </tr>
             <% end %>
           </tbody>

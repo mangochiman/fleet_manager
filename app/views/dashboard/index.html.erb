@@ -5,54 +5,70 @@
     <p>Welcome back, <%= current_user.name %>! Here's your fleet performance overview.</p>
   </div>
   
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">💰</div>
-      <div class="stat-value"><%= number_to_currency(@total_revenue) %></div>
-      <div class="stat-label">Total Revenue</div>
-      <div class="stat-trend positive">↑ +12% from last month</div>
+  <!-- Compact Stats Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+    <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.7rem; color: #64748b;">Total Revenue</div>
+          <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= number_to_currency(@total_revenue) %></div>
+          <div style="font-size: 0.65rem; color: #10b981; margin-top: 0.25rem;">↑ +12% from last month</div>
+        </div>
+        <div style="font-size: 1.5rem;">💰</div>
+      </div>
     </div>
     
-    <div class="stat-card">
-      <div class="stat-icon">📊</div>
-      <div class="stat-value"><%= number_to_currency(@total_expenses) %></div>
-      <div class="stat-label">Total Expenses</div>
-      <div class="stat-trend negative">↓ Within budget</div>
+    <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #ef4444;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.7rem; color: #64748b;">Total Expenses</div>
+          <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= number_to_currency(@total_expenses) %></div>
+          <div style="font-size: 0.65rem; color: #10b981; margin-top: 0.25rem;">↓ Within budget</div>
+        </div>
+        <div style="font-size: 1.5rem;">📊</div>
+      </div>
     </div>
     
-    <div class="stat-card">
-      <div class="stat-icon">🎯</div>
-      <div class="stat-value"><%= number_to_currency(@net_profit) %></div>
-      <div class="stat-label">Net Profit</div>
-      <div class="stat-trend positive">↑ +8% growth</div>
+    <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.7rem; color: #64748b;">Net Profit</div>
+          <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= number_to_currency(@net_profit) %></div>
+          <div style="font-size: 0.65rem; color: #10b981; margin-top: 0.25rem;">↑ +8% growth</div>
+        </div>
+        <div style="font-size: 1.5rem;">🎯</div>
+      </div>
     </div>
     
-    <div class="stat-card">
-      <div class="stat-icon">⏳</div>
-      <div class="stat-value"><%= number_to_currency(@outstanding_amount) %></div>
-      <div class="stat-label">Outstanding Payments</div>
-      <div class="stat-trend warning"><%= @outstanding_count %> pending transactions</div>
+    <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #f59e0b;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-size: 0.7rem; color: #64748b;">Outstanding Payments</div>
+          <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= number_to_currency(@outstanding_amount) %></div>
+          <div style="font-size: 0.65rem; color: #f59e0b; margin-top: 0.25rem;"><%= @outstanding_count %> pending</div>
+        </div>
+        <div style="font-size: 1.5rem;">⏳</div>
+      </div>
     </div>
   </div>
   
   <!-- Charts Row -->
-  <div class="charts-grid">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
     <div class="card">
       <div class="card-header">
         <h3>Revenue vs Expenses Trend</h3>
       </div>
       <div class="card-body">
-        <canvas id="revenueExpenseChart" height="300"></canvas>
+        <canvas id="revenueExpenseChart" height="250"></canvas>
       </div>
     </div>
     
     <div class="card">
       <div class="card-header">
-        <h3>Outstanding Aging Analysis</h3>
+        <h3>Expense Breakdown by Category</h3>
       </div>
       <div class="card-body">
-        <canvas id="agingChart" height="300"></canvas>
+        <canvas id="expenseBreakdownChart" height="250"></canvas>
       </div>
     </div>
   </div>
@@ -63,26 +79,26 @@
       <h3>Vehicle Performance</h3>
     </div>
     <div class="card-body table-responsive">
-      <table class="data-table">
+      <table style="width: 100%; border-collapse: collapse;">
         <thead>
-          <tr>
-            <th>Vehicle</th>
-            <th>Revenue</th>
-            <th>Expenses</th>
-            <th>Profit</th>
-            <th>Performance</th>
+          <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+            <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.8rem;">Vehicle</th>
+            <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.8rem;">Revenue</th>
+            <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.8rem;">Expenses</th>
+            <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.8rem;">Profit</th>
+            <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.8rem;">Performance</th>
           </tr>
         </thead>
         <tbody>
           <% @vehicle_performance.each do |vehicle| %>
-            <tr>
-              <td><strong><%= vehicle[:name] %></strong></td>
-              <td class="positive"><%= number_to_currency(vehicle[:sales]) %></td>
-              <td class="negative"><%= number_to_currency(vehicle[:expenses]) %></td>
-              <td class="<%= vehicle[:profit] >= 0 ? 'positive' : 'negative' %>">
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 0.75rem; font-size: 0.8rem;"><strong><%= vehicle[:name] %></strong></td>
+              <td style="padding: 0.75rem; font-size: 0.8rem; color: #10b981;"><%= number_to_currency(vehicle[:sales]) %></td>
+              <td style="padding: 0.75rem; font-size: 0.8rem; color: #ef4444;"><%= number_to_currency(vehicle[:expenses]) %></td>
+              <td style="padding: 0.75rem; font-size: 0.8rem;" class="<%= vehicle[:profit] >= 0 ? 'positive' : 'negative' %>">
                 <%= number_to_currency(vehicle[:profit]) %>
               </td>
-              <td>
+              <td style="padding: 0.75rem; font-size: 0.8rem;">
                 <div class="progress-bar">
                   <div class="progress-fill" style="width: <%= vehicle[:profit] > 0 ? [((vehicle[:profit] / vehicle[:sales]) * 100), 100].min : 0 %>%"></div>
                 </div>
@@ -95,29 +111,28 @@
   </div>
   
   <!-- Recent Transactions -->
-  <div class="two-columns">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+    <!-- Recent Sales -->
     <div class="card">
       <div class="card-header">
         <h3>Recent Sales</h3>
         <%= link_to "View All →", sales_path, class: "link" %>
       </div>
-      <div class="card-body p-0">
-        <table class="data-table compact">
+      <div class="card-body" style="padding: 0;">
+        <table style="width: 100%; border-collapse: collapse;">
           <thead>
-            <tr>
-              <th>ID</th>
-              <th>Customer</th>
-              <th>Amount</th>
-              <th>Status</th>
+            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Customer</th>
+              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Amount</th>
+              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Status</th>
             </tr>
           </thead>
           <tbody>
             <% @recent_sales.each do |sale| %>
-              <tr>
-                <td><%= sale.transaction_id %></td>
-                <td><%= sale.customer_name %></td>
-                <td><%= number_to_currency(sale.total_amount) %></td>
-                <td>
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 0.75rem; font-size: 0.8rem;"><%= sale.customer_name %></td>
+                <td style="padding: 0.75rem; font-size: 0.8rem; color: #10b981;"><%= number_to_currency(sale.total_amount) %></td>
+                <td style="padding: 0.75rem; font-size: 0.8rem;">
                   <span class="badge badge-<%= sale.payment_status %>">
                     <%= sale.payment_status.titleize %>
                   </span>
@@ -129,28 +144,27 @@
       </div>
     </div>
     
+    <!-- Recent Expenses -->
     <div class="card">
       <div class="card-header">
         <h3>Recent Expenses</h3>
         <%= link_to "View All →", expenses_path, class: "link" %>
       </div>
-      <div class="card-body p-0">
-        <table class="data-table compact">
+      <div class="card-body" style="padding: 0;">
+        <table style="width: 100%; border-collapse: collapse;">
           <thead>
-            <tr>
-              <th>Vehicle</th>
-              <th>Category</th>
-              <th>Amount</th>
-              <th>Date</th>
+            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Vehicle</th>
+              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Category</th>
+              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Amount</th>
             </tr>
           </thead>
           <tbody>
             <% @recent_expenses.each do |expense| %>
-              <tr>
-                <td><%= expense.vehicle.registration_number %></td>
-                <td><%= expense.category.titleize %></td>
-                <td class="negative"><%= number_to_currency(expense.amount) %></td>
-                <td><%= expense.expense_date.strftime("%b %d, %Y") %></td>
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 0.75rem; font-size: 0.8rem;"><%= expense.vehicle.registration_number %></td>
+                <td style="padding: 0.75rem; font-size: 0.8rem;"><%= expense.category.titleize %></td>
+                <td style="padding: 0.75rem; font-size: 0.8rem; color: #ef4444;"><%= number_to_currency(expense.amount) %></td>
               </tr>
             <% end %>
           </tbody>
@@ -175,7 +189,9 @@
           borderColor: '#10b981',
           backgroundColor: 'rgba(16, 185, 129, 0.1)',
           tension: 0.4,
-          fill: true
+          fill: true,
+          pointRadius: 3,
+          pointHoverRadius: 5
         },
         {
           label: 'Expenses',
@@ -183,7 +199,9 @@
           borderColor: '#ef4444',
           backgroundColor: 'rgba(239, 68, 68, 0.1)',
           tension: 0.4,
-          fill: true
+          fill: true,
+          pointRadius: 3,
+          pointHoverRadius: 5
         }
       ]
     },
@@ -191,29 +209,56 @@
       responsive: true,
       maintainAspectRatio: true,
       plugins: {
-        legend: { position: 'bottom' }
+        legend: { position: 'bottom', labels: { font: { size: 11 } } }
       }
     }
   });
   
-  // Aging Analysis Chart
-  const ctx2 = document.getElementById('agingChart').getContext('2d');
-  new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-      labels: ['0-30 days', '31-60 days', '61-90 days', '90+ days'],
-      datasets: [{
-        data: <%= @aging_data.to_json.html_safe %>,
-        backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#78350f'],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: { position: 'bottom' }
+  // Expense Breakdown by Category Chart (Pie Chart)
+  const ctx2 = document.getElementById('expenseBreakdownChart').getContext('2d');
+  const expenseData = <%= @expense_category_data.to_json.html_safe %>;
+  const expenseLabels = <%= @expense_category_labels.to_json.html_safe %>;
+  
+  if (expenseData.length > 1 || expenseLabels[0] !== 'No Data Available') {
+    new Chart(ctx2, {
+      type: 'pie',
+      data: {
+        labels: expenseLabels,
+        datasets: [{
+          data: expenseData,
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#6366f1'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { 
+            position: 'bottom', 
+            labels: { 
+              font: { size: 10 },
+              boxWidth: 10,
+              padding: 8
+            } 
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((context.raw / total) * 100).toFixed(1);
+                const amount = new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(context.raw);
+                return `${context.label}: ${amount} (${percentage}%)`;
+              }
+            }
+          }
+        }
       }
-    }
-  });
+    });
+  } else {
+    ctx2.font = '14px Inter';
+    ctx2.fillStyle = '#64748b';
+    ctx2.textAlign = 'center';
+    ctx2.fillText('No expense data available', ctx2.canvas.width / 2, ctx2.canvas.height / 2);
+  }
 </script>

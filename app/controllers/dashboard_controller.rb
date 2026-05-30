@@ -35,13 +35,16 @@ class DashboardController < ApplicationController
       }
     end
     
-    # Aging analysis
-    today = Date.current
-    @aging_data = [
-      Sale.outstanding.where('transaction_date >= ?', today - 30.days).sum(:total_amount),
-      Sale.outstanding.where(transaction_date: (today - 60.days)...(today - 30.days)).sum(:total_amount),
-      Sale.outstanding.where(transaction_date: (today - 90.days)...(today - 60.days)).sum(:total_amount),
-      Sale.outstanding.where('transaction_date <= ?', today - 90.days).sum(:total_amount)
-    ]
+    # Expense Breakdown by Category
+    expense_categories = Expense.group(:category).sum(:amount).sort_by { |_, amount| -amount }
+    @expense_category_labels = expense_categories.map { |category, _| category.titleize }
+    @expense_category_data = expense_categories.map { |_, amount| amount.to_f }
+    @expense_category_colors = ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#6366f1']
+    
+    # If no expenses, show placeholder
+    if @expense_category_labels.empty?
+      @expense_category_labels = ['No Data Available']
+      @expense_category_data = [1]
+    end
   end
 end

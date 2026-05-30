@@ -1,0 +1,67 @@
+<div class="page-header">
+  <h1>Record Payment</h1>
+  <p>Transaction: <code><%= @sale.transaction_id %></code></p>
+  <p>Customer: <strong><%= @sale.customer_name %></strong></p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Payment Details</h3>
+  </div>
+  <div class="card-body">
+    <!-- Payment Summary -->
+    <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span style="color: #64748b;">Total Amount:</span>
+        <span class="positive"><strong><%= number_to_currency(@sale.total_amount) %></strong></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span style="color: #64748b;">Amount Paid:</span>
+        <span class="positive"><strong><%= number_to_currency(@sale.paid_amount || 0) %></strong></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span style="color: #64748b;">Remaining Balance:</span>
+        <span class="negative"><strong><%= number_to_currency(@sale.remaining_balance) %></strong></span>
+      </div>
+      <div style="margin-top: 0.5rem; background: white; border-radius: 0.375rem; overflow: hidden;">
+        <div style="height: 8px; background: #e2e8f0;">
+          <div style="width: <%= @sale.payment_percentage %>%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: width 0.3s;"></div>
+        </div>
+        <div style="text-align: center; font-size: 0.75rem; padding: 0.25rem; color: #64748b;">
+          <%= @sale.payment_percentage %>% Paid
+        </div>
+      </div>
+    </div>
+    
+    <%= form_tag record_payment_sale_path(@sale), method: :patch, multipart: true do %>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <%= label_tag :payment_amount, "Payment Amount *" %>
+          <%= number_field_tag :payment_amount, nil, class: "form-control", step: "any", placeholder: "Enter amount", required: true, min: 0.01, max: @sale.remaining_balance %>
+          <small style="color: #64748b;">Max: <%= number_to_currency(@sale.remaining_balance) %></small>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :reference_number, "Transaction / Reference Number" %>
+          <%= text_field_tag :reference_number, nil, class: "form-control", placeholder: "e.g., M-PESA Code, Bank Reference" %>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :proof_image, "Upload Proof" %>
+          <%= file_field_tag :proof_image, class: "form-control", accept: "image/*,application/pdf" %>
+          <small style="color: #64748b;">Upload payment confirmation (Optional)</small>
+        </div>
+        
+        <div class="form-group full-width">
+          <%= label_tag :notes, "Notes" %>
+          <%= text_area_tag :notes, nil, class: "form-control", rows: 3, placeholder: "Any additional information about this payment..." %>
+        </div>
+      </div>
+      
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <%= submit_tag "Record Payment", class: "btn btn-primary" %>
+        <%= link_to "Cancel", @sale, class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

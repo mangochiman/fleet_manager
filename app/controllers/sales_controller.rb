@@ -1,6 +1,6 @@
 class SalesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_sale, only: [:show, :edit, :update, :destroy, :mark_paid, :mark_banked, :mark_paid_form]
+  before_action :set_sale, only: [:show, :edit, :update, :destroy, :mark_paid, :mark_banked, :mark_paid_form, :record_payment_form, :record_payment, :proof]
   
   def index
     # Set per_page from params or default to 20
@@ -26,6 +26,7 @@ class SalesController < ApplicationController
     # Stats (unfiltered totals)
     @total_sales = Sale.sum(:total_amount)
     @outstanding_sales = Sale.outstanding.sum(:total_amount)
+    @partial_sales = Sale.partial.sum(:total_amount)
     @paid_sales = Sale.paid.sum(:total_amount)
   end
   
@@ -78,7 +79,7 @@ class SalesController < ApplicationController
   end
   
   def mark_paid_form
-    # Render the form to collect payment proof
+    # Render the form to collect payment proof for full payment
   end
   
   def mark_paid
@@ -101,7 +102,7 @@ class SalesController < ApplicationController
         payment_history.proof_attachment.attach(params[:proof_image])
       end
       
-      redirect_to @sale, notice: 'Payment marked as paid successfully.'
+      redirect_to @sale, notice: 'Full payment marked as paid successfully.'
     else
       redirect_to @sale, alert: 'Unable to mark payment as paid.'
     end
@@ -115,9 +116,60 @@ class SalesController < ApplicationController
     end
   end
   
+  def record_payment_form
+    # Render the form to record partial payment
+  end
+  
+  def record_payment
+    @sale = Sale.find(params[:id])
+    
+    amount = params[:payment_amount].to_f
+    
+    if amount <= 0
+      redirect_to @sale, alert: 'Payment amount must be greater than 0.'
+      return
+    end
+    
+    if amount > @sale.remaining_balance
+      redirect_to @sale, alert: "Payment amount cannot exceed remaining balance of #{helpers.number_to_currency(@sale.remaining_balance)}."
+      return
+    end
+    
+    proof_image = nil
+    if params[:proof_image].present?
+      proof_image = params[:proof_image].original_filename
+    end
+    
+    if @sale.record_payment!(
+      amount: amount,
+      reference_number: params[:reference_number],
+      proof_image: proof_image,
+      notes: params[:notes],
+      updated_by: current_user
+    )
+      # Attach the file to the payment history record
+      if params[:proof_image].present?
+        payment_history = @sale.payment_histories.last
+        payment_history.proof_attachment.attach(params[:proof_image])
+      end
+      
+      if @sale.paid?
+        redirect_to @sale, notice: "Full payment of #{helpers.number_to_currency(amount)} recorded successfully!"
+      else
+        redirect_to @sale, notice: "Partial payment of #{helpers.number_to_currency(amount)} recorded. Remaining balance: #{helpers.number_to_currency(@sale.remaining_balance)}"
+      end
+    else
+      redirect_to @sale, alert: 'Unable to record payment.'
+    end
+  end
+  
   def proof
     @sale = Sale.find(params[:id])
-    @payment_history = @sale.payment_histories.where(new_status: 'paid').order(created_at: :desc).first
+    @payment_history = if params[:history_id].present?
+      @sale.payment_histories.find(params[:history_id])
+    else
+      @sale.payment_histories.where(new_status: 'paid').order(created_at: :desc).first
+    end
     
     unless @payment_history&.proof_attachment&.attached?
       redirect_to @sale, alert: 'No proof of payment available for this transaction.'

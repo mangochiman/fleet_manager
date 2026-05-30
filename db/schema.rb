@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_30_081626) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_30_110004) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -96,6 +96,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_30_081626) do
     t.string "customer_name", null: false
     t.string "customer_phone"
     t.text "notes"
+    t.decimal "paid_amount", precision: 10
+    t.date "payment_due_date"
+    t.string "payment_method"
     t.string "payment_status", default: "outstanding"
     t.bigint "product_id", null: false
     t.string "proof_of_payment_image"
