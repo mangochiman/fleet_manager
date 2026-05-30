@@ -1,0 +1,136 @@
+<div class="page-header">
+  <h1>Vehicle Details</h1>
+  <p><%= @vehicle.registration_number %></p>
+</div>
+
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+  <%= link_to "← Back to Vehicles", vehicles_path, class: "btn btn-secondary btn-sm" %>
+  <%= link_to "Edit", edit_vehicle_path(@vehicle), class: "btn btn-primary btn-sm" %>
+  <%= button_to "Delete", @vehicle, method: :delete, class: "btn btn-danger btn-sm", form: { style: "display: inline-block;", data: { turbo_confirm: "Are you sure? This will affect sales and expenses." } } %>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+  <!-- Vehicle Info -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">VEHICLE INFO</h3>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Registration:</span>
+      <span><strong><%= @vehicle.registration_number %></strong></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Make:</span>
+      <span><%= @vehicle.make %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Model:</span>
+      <span><%= @vehicle.model %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Year:</span>
+      <span><%= @vehicle.year %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+      <span style="color: #64748b;">Status:</span>
+      <span class="badge <%= @vehicle.status_badge_class %>"><%= @vehicle.status.titleize %></span>
+    </div>
+  </div>
+
+  <!-- Financial Performance -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">FINANCIAL PERFORMANCE</h3>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Total Revenue:</span>
+      <span class="positive"><%= number_to_currency(@vehicle.total_sales) %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Total Expenses:</span>
+      <span class="negative"><%= number_to_currency(@vehicle.total_expenses) %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Net Profit:</span>
+      <span class="<%= @vehicle.profit >= 0 ? 'positive' : 'negative' %>"><strong><%= number_to_currency(@vehicle.profit) %></strong></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+      <span style="color: #64748b;">Profit Margin:</span>
+      <span class="<%= @vehicle.profit_margin >= 0 ? 'positive' : 'negative' %>"><strong><%= @vehicle.profit_margin %>%</strong></span>
+    </div>
+    
+    <!-- Profit Progress Bar -->
+    <% if @vehicle.total_sales > 0 %>
+      <div style="margin-top: 1rem; background: #e2e8f0; border-radius: 0.5rem; overflow: hidden;">
+        <div style="width: <%= @vehicle.profit_margin %>% ; height: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+      </div>
+      <div style="text-align: center; margin-top: 0.25rem; font-size: 0.65rem; color: #64748b;">
+        <%= @vehicle.profit_margin %>% Profit Margin
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Recent Sales -->
+<div class="card" style="margin-top: 1rem;">
+  <div class="card-header">
+    <h3>Recent Sales</h3>
+    <%= link_to "View All Sales →", sales_path(vehicle_id: @vehicle.id), class: "link" %>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="data-table compact">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_sales.each do |sale| %>
+            <tr>
+              <td><%= sale.transaction_id %></td>
+              <td><%= sale.customer_name %></td>
+              <td><%= sale.product.name %> (<%= sale.quantity %> <%= sale.product.unit %>)</td>
+              <td class="positive"><%= number_to_currency(sale.total_amount) %></td>
+              <td><span class="badge badge-<%= sale.payment_status %>"><%= sale.payment_status.titleize %></span></td>
+              <td><%= sale.transaction_date.strftime("%d/%m/%y") %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Expenses -->
+<div class="card">
+  <div class="card-header">
+    <h3>Recent Expenses</h3>
+    <%= link_to "View All Expenses →", expenses_path(vehicle_id: @vehicle.id), class: "link" %>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="data-table compact">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_expenses.each do |expense| %>
+            <tr>
+              <td><%= expense.expense_date.strftime("%d/%m/%y") %></td>
+              <td><span class="badge badge-active"><%= expense.category.titleize %></span></td>
+              <td><%= truncate(expense.description, length: 40) %></td>
+              <td class="negative"><%= number_to_currency(expense.amount) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

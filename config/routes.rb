@@ -19,7 +19,12 @@ Rails.application.routes.draw do
     end
   end
   
-  resources :expenses
+  resources :expenses do
+    member do
+      get :receipt
+    end
+  end
+  
   resources :vehicles
   resources :products do
     member do

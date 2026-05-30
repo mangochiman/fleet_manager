@@ -1,4 +1,134 @@
-<div>
-  <h1 class="font-bold text-4xl">Expenses#index</h1>
-  <p>Find me in app/views/expenses/index.html.erb</p>
+<div class="page-header">
+  <h1>Expenses</h1>
+  <p>Track and manage all vehicle expenses</p>
 </div>
+
+<!-- Compact Summary Bar -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #ef4444;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 0.7rem; color: #64748b;">Total Expenses</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= number_to_currency(@total_expenses) %></div>
+      </div>
+      <div style="font-size: 1.5rem;">💸</div>
+    </div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #f59e0b;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 0.7rem; color: #64748b;">Total Transactions</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @expenses.total_entries %></div>
+      </div>
+      <div style="font-size: 1.5rem;">📋</div>
+    </div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 0.7rem; color: #64748b;">Active Vehicles</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @vehicles.count %></div>
+      </div>
+      <div style="font-size: 1.5rem;">🚛</div>
+    </div>
+  </div>
+</div>
+
+<!-- Search and Filter Bar -->
+<div style="margin-bottom: 1.5rem;">
+  <%= form_tag expenses_path, method: :get, style: "display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;" do %>
+    <%= select_tag :vehicle_id, options_for_select([["All Vehicles", ""]] + @vehicles.map { |v| [v.display_name, v.id] }, params[:vehicle_id]), class: "form-control", style: "width: auto; min-width: 150px;" %>
+    <%= select_tag :category, options_for_select([["All Categories", ""]] + Expense::CATEGORIES.map { |k, v| [v, k] }, params[:category]), class: "form-control", style: "width: auto; min-width: 130px;" %>
+    <%= date_field_tag :start_date, params[:start_date], class: "form-control", placeholder: "From", style: "width: auto;" %>
+    <%= date_field_tag :end_date, params[:end_date], class: "form-control", placeholder: "To", style: "width: auto;" %>
+    
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <span style="font-size: 0.75rem; color: #64748b;">Show:</span>
+      <%= select_tag :per_page, options_for_select([10, 20, 50, 100], params[:per_page] || 20), class: "form-control", style: "width: auto; min-width: 65px;", onchange: "this.form.submit()" %>
+    </div>
+    
+    <%= submit_tag "Filter", class: "btn btn-primary btn-sm" %>
+    <%= link_to "Clear", expenses_path, class: "btn btn-secondary btn-sm" %>
+    <%= link_to "+ New Expense", new_expense_path, class: "btn btn-primary btn-sm" %>
+  <% end %>
+</div>
+
+<!-- Expenses Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>All Expenses</h3>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Vehicle</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Receipt</th>
+            <th>Recorded By</th>
+            <th style="width: 100px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @expenses.each do |expense| %>
+            <tr>
+              <td data-label="Date"><%= expense.expense_date.strftime("%d/%m/%y") %></td>
+              <td data-label="Vehicle"><strong><%= expense.vehicle.registration_number %></strong></td>
+              <td data-label="Category"><span class="badge badge-active"><%= expense.category_name %></span></td>
+              <td data-label="Description"><%= truncate(expense.description, length: 40) %></td>
+              <td data-label="Amount" class="negative"><%= number_to_currency(expense.amount) %></td>
+              <td data-label="Receipt">
+                <% if expense.receipt.attached? %>
+                  <%= link_to "View", receipt_expense_path(expense), target: "_blank", class: "link", style: "font-size: 0.75rem;" %>
+                <% else %>
+                  <span style="color: #64748b;">—</span>
+                <% end %>
+              </td>
+              <td data-label="Recorded By"><%= expense.recorded_by&.name || 'System' %></td>
+              <td data-label="Actions" style="white-space: nowrap;">
+                <%= link_to "View", expense, class: "btn btn-secondary btn-sm" %>
+                <%= link_to "Edit", edit_expense_path(expense), class: "btn btn-secondary btn-sm" %>
+                <%= button_to "Delete", expense, method: :delete, class: "btn btn-danger btn-sm", form: { style: "display: inline-block;", data: { turbo_confirm: "Are you sure?" } } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    
+    <% if @expenses.empty? %>
+      <div style="text-align: center; padding: 3rem; color: #64748b;">
+        No expenses found. <%= link_to "Record your first expense", new_expense_path %>.
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Pagination -->
+<% if @expenses.total_entries > 0 %>
+  <div style="margin-top: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div style="font-size: 0.75rem; color: #64748b;">
+        <% if @expenses.total_pages > 1 %>
+          <%= @expenses.offset + 1 %> - <%= [@expenses.offset + @expenses.length, @expenses.total_entries].min %> of <%= @expenses.total_entries %> expenses
+        <% else %>
+          All <%= @expenses.total_entries %> expenses
+        <% end %>
+      </div>
+      
+      <% if @expenses.total_pages > 1 %>
+        <%= will_paginate @expenses, 
+              renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+              previous_label: '←',
+              next_label: '→',
+              class: 'pagination' %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

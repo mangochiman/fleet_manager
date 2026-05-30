@@ -1,4 +1,13 @@
-<div>
-  <h1 class="font-bold text-4xl">Vehicles#new</h1>
-  <p>Find me in app/views/vehicles/new.html.erb</p>
+<div class="page-header">
+  <h1>Add New Vehicle</h1>
+  <p>Register a new vehicle to your fleet</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Vehicle Details</h3>
+  </div>
+  <div class="card-body">
+    <%= render 'form', vehicle: @vehicle, submit_text: "Add Vehicle" %>
+  </div>
 </div>

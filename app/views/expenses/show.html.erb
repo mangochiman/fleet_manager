@@ -1,0 +1,65 @@
+<div class="page-header">
+  <h1>Expense Details</h1>
+  <p><%= @expense.category_name %></p>
+</div>
+
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+  <%= link_to "← Back to Expenses", expenses_path, class: "btn btn-secondary btn-sm" %>
+  <%= link_to "Edit", edit_expense_path(@expense), class: "btn btn-primary btn-sm" %>
+  <%= button_to "Delete", @expense, method: :delete, class: "btn btn-danger btn-sm", form: { style: "display: inline-block;", data: { turbo_confirm: "Are you sure?" } } %>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+  <!-- Expense Info -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">EXPENSE INFO</h3>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Date:</span>
+      <span><%= @expense.expense_date.strftime("%B %d, %Y") %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Vehicle:</span>
+      <span><%= @expense.vehicle.display_name %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Category:</span>
+      <span class="badge badge-active"><%= @expense.category_name %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Amount:</span>
+      <span class="negative"><strong><%= number_to_currency(@expense.amount) %></strong></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+      <span style="color: #64748b;">Recorded By:</span>
+      <span><%= @expense.recorded_by&.name || 'System' %></span>
+    </div>
+  </div>
+
+  <!-- Description & Receipt -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">DESCRIPTION</h3>
+    <div style="margin-bottom: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 0.5rem; font-size: 0.875rem;">
+      <%= @expense.description %>
+    </div>
+    
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">RECEIPT</h3>
+    <% if @expense.receipt.attached? %>
+      <div style="text-align: center; margin-top: 0.5rem;">
+        <% if @expense.receipt.image? %>
+          <%= image_tag @expense.receipt, style: "max-width: 100%; max-height: 300px; border-radius: 0.5rem; border: 1px solid #e2e8f0;" %>
+        <% else %>
+          <div style="padding: 2rem; background: #f8fafc; border-radius: 0.5rem; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">📄</div>
+            <p><%= @expense.receipt.filename %></p>
+            <%= link_to "Download Receipt", receipt_expense_path(@expense), class: "btn btn-primary btn-sm", target: "_blank" %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div style="text-align: center; padding: 2rem; background: #f8fafc; border-radius: 0.5rem; color: #64748b;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📷</div>
+        <p>No receipt uploaded</p>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,44 @@
+<%= form_with(model: vehicle, local: true, class: "form") do |f| %>
+  <% if vehicle.errors.any? %>
+    <div class="alert alert-danger">
+      <h4><%= pluralize(vehicle.errors.count, "error") %> prohibited this vehicle from being saved:</h4>
+      <ul>
+        <% vehicle.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  
+  <div class="grid grid-2">
+    <div class="form-group">
+      <%= f.label :registration_number, "Registration Number *" %>
+      <%= f.text_field :registration_number, class: "form-control", placeholder: "e.g., KCA 123A", required: true %>
+    </div>
+    
+    <div class="form-group">
+      <%= f.label :make, "Make *" %>
+      <%= f.text_field :make, class: "form-control", placeholder: "e.g., Mercedes-Benz, Volvo, Isuzu", required: true %>
+    </div>
+    
+    <div class="form-group">
+      <%= f.label :model, "Model *" %>
+      <%= f.text_field :model, class: "form-control", placeholder: "e.g., Actros, FH16, FRR", required: true %>
+    </div>
+    
+    <div class="form-group">
+      <%= f.label :year, "Year *" %>
+      <%= f.number_field :year, class: "form-control", placeholder: "e.g., 2022", min: 1990, max: Date.current.year + 1, required: true %>
+    </div>
+    
+    <div class="form-group">
+      <%= f.label :status, "Status *" %>
+      <%= f.select :status, options_for_select([["Active", "active"], ["Maintenance", "maintenance"], ["Retired", "retired"]], vehicle.status), class: "form-control", required: true %>
+    </div>
+  </div>
+  
+  <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+    <%= f.submit submit_text, class: "btn btn-primary" %>
+    <%= link_to "Cancel", vehicles_path, class: "btn btn-secondary" %>
+  </div>
+<% end %>
