@@ -1,4 +1,144 @@
-<div>
-  <h1 class="font-bold text-4xl">Products#index</h1>
-  <p>Find me in app/views/products/index.html.erb</p>
+<div class="page-header">
+  <h1>Products</h1>
+  <p>Manage your products and pricing</p>
 </div>
+
+<!-- Compact Stats Bar -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 0.7rem; color: #64748b;">Total Products</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @total_products %></div>
+      </div>
+      <div style="font-size: 1.5rem;">📦</div>
+    </div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 0.7rem; color: #64748b;">Active</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @active_products %></div>
+      </div>
+      <div style="font-size: 1.5rem;">✅</div>
+    </div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #64748b;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 0.7rem; color: #64748b;">Inactive</div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @inactive_products %></div>
+      </div>
+      <div style="font-size: 1.5rem;">📋</div>
+    </div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <div style="font-size: 0.7rem; color: #64748b;">Total Revenue</div>
+        <div style="font-size: 1rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@total_revenue) %></div>
+      </div>
+      <div style="font-size: 1.5rem;">💰</div>
+    </div>
+  </div>
+</div>
+
+<!-- Search and Filter Bar -->
+<div style="margin-bottom: 1.5rem;">
+  <%= form_tag products_path, method: :get, style: "display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;" do %>
+    <%= text_field_tag :search, params[:search], placeholder: "Search by name or description...", class: "form-control", style: "flex: 1; min-width: 150px;" %>
+    <%= select_tag :status, options_for_select([["All Products", ""], ["Active", "active"], ["Inactive", "inactive"]], params[:status]), class: "form-control", style: "width: auto; min-width: 120px;" %>
+    
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <span style="font-size: 0.75rem; color: #64748b;">Show:</span>
+      <%= select_tag :per_page, options_for_select([10, 20, 50], params[:per_page] || 10), class: "form-control", style: "width: auto; min-width: 65px;", onchange: "this.form.submit()" %>
+    </div>
+    
+    <%= submit_tag "Filter", class: "btn btn-primary btn-sm" %>
+    <%= link_to "Clear", products_path, class: "btn btn-secondary btn-sm" %>
+    <%= link_to "+ Add Product", new_product_path, class: "btn btn-primary btn-sm" %>
+  <% end %>
+</div>
+
+<!-- Products Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>All Products</h3>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Unit</th>
+            <th>Price</th>
+            <th>Sales</th>
+            <th>Revenue</th>
+            <th>Status</th>
+            <th style="width: 120px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @products.each do |product| %>
+            <tr>
+              <td data-label="Name"><strong><%= product.name %></strong></td>
+              <td data-label="Description"><%= truncate(product.description, length: 50) %></td>
+              <td data-label="Unit"><%= product.unit %></td>
+              <td data-label="Price" class="positive"><%= number_to_currency(product.price) %></td>
+              <td data-label="Sales"><%= product.total_sales_count %></td>
+              <td data-label="Revenue" class="positive"><%= number_to_currency(product.total_revenue) %></td>
+              <td data-label="Status">
+                <span class="badge <%= product.active? ? 'badge-paid' : 'badge-inactive' %>">
+                  <%= product.active? ? 'Active' : 'Inactive' %>
+                </span>
+              </td>
+              <td data-label="Actions" style="white-space: nowrap;">
+                <%= link_to "View", product, class: "btn btn-secondary btn-sm" %>
+                <%= link_to "Edit", edit_product_path(product), class: "btn btn-secondary btn-sm" %>
+                <% if product.active? %>
+                  <%= link_to "Deactivate", toggle_status_product_path(product), method: :patch, class: "btn btn-warning btn-sm", data: { confirm: "Deactivate this product? It will no longer appear in sales forms." } %>
+                <% else %>
+                  <%= link_to "Activate", toggle_status_product_path(product), method: :patch, class: "btn btn-success btn-sm", data: { confirm: "Activate this product?" } %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    
+    <% if @products.empty? %>
+      <div style="text-align: center; padding: 3rem; color: #64748b;">
+        No products found. <%= link_to "Add your first product", new_product_path %>.
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Pagination -->
+<% if @products.total_entries > 0 %>
+  <div style="margin-top: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div style="font-size: 0.75rem; color: #64748b;">
+        <% if @products.total_pages > 1 %>
+          <%= @products.offset + 1 %> - <%= [@products.offset + @products.length, @products.total_entries].min %> of <%= @products.total_entries %> products
+        <% else %>
+          All <%= @products.total_entries %> products
+        <% end %>
+      </div>
+      
+      <% if @products.total_pages > 1 %>
+        <%= will_paginate @products, 
+              renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+              previous_label: '←',
+              next_label: '→',
+              class: 'pagination' %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

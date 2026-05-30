@@ -1,0 +1,50 @@
+wb = xlsx_package.workbook
+
+# Add a worksheet
+wb.add_worksheet(name: "Sales Report") do |sheet|
+  # Add title
+  sheet.add_row ["Sales Report"]
+  sheet.add_row ["Period: #{@start_date.strftime("%B %d, %Y")} - #{@end_date.strftime("%B %d, %Y")}"]
+  sheet.add_row ["Generated: #{Time.current.strftime("%B %d, %Y at %I:%M %p")}"]
+  sheet.add_row []
+  
+  # Summary section
+  sheet.add_row ["SUMMARY"]
+  sheet.add_row ["Total Transactions", @total_transactions]
+  sheet.add_row ["Total Revenue", @total_revenue]
+  sheet.add_row ["Average Transaction", @average_transaction]
+  sheet.add_row []
+  
+  # Status breakdown
+  sheet.add_row ["SALES BY STATUS"]
+  sheet.add_row ["Status", "Count", "Amount", "Percentage"]
+  ['outstanding', 'paid', 'banked'].each do |status|
+    count = @status_counts[status] || 0
+    amount = @status_amounts[status] || 0
+    percentage = @total_revenue > 0 ? (amount / @total_revenue.to_f * 100).round(1) : 0
+    sheet.add_row [status.titleize, count, amount, "#{percentage}%"]
+  end
+  sheet.add_row []
+  
+  # Detailed transactions
+  sheet.add_row ["DETAILED TRANSACTIONS"]
+  sheet.add_row ["Date", "Transaction ID", "Customer", "Phone", "Product", "Quantity", "Unit Price", "Total", "Status"]
+  
+  @sales.each do |sale|
+    sheet.add_row [
+      sale.transaction_date.strftime("%d/%m/%y"),
+      sale.transaction_id,
+      sale.customer_name,
+      sale.customer_phone,
+      sale.product.name,
+      "#{sale.quantity} #{sale.product.unit}",
+      sale.unit_price,
+      sale.total_amount,
+      sale.payment_status.titleize
+    ]
+  end
+  
+  # Grand total
+  sheet.add_row []
+  sheet.add_row ["Grand Total", "", "", "", "", "", "", @total_revenue, ""]
+end

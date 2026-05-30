@@ -1,0 +1,89 @@
+<div class="page-header">
+  <h1>Product Details</h1>
+  <p><%= @product.name %></p>
+</div>
+
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+  <%= link_to "← Back to Products", products_path, class: "btn btn-secondary btn-sm" %>
+  <%= link_to "Edit", edit_product_path(@product), class: "btn btn-primary btn-sm" %>
+  <%= button_to "Delete", @product, method: :delete, class: "btn btn-danger btn-sm", form: { style: "display: inline-block;", data: { turbo_confirm: "Are you sure? This will affect sales records." } } %>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+  <!-- Product Info -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">PRODUCT INFO</h3>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Name:</span>
+      <span><strong><%= @product.name %></strong></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Unit:</span>
+      <span><%= @product.unit %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Price:</span>
+      <span class="positive"><%= number_to_currency(@product.price) %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Status:</span>
+      <span class="badge <%= @product.active? ? 'badge-paid' : 'badge-inactive' %>">
+        <%= @product.active? ? 'Active' : 'Inactive' %>
+      </span>
+    </div>
+    <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #e2e8f0;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+        <span style="color: #64748b;">Total Sales:</span>
+        <span><%= @product.total_sales_count %> transactions</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.875rem;">
+        <span style="color: #64748b;">Total Revenue:</span>
+        <span class="positive"><%= number_to_currency(@product.total_revenue) %></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">DESCRIPTION</h3>
+    <div style="padding: 0.75rem; background: #f8fafc; border-radius: 0.5rem; font-size: 0.875rem;">
+      <%= @product.description %>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Sales -->
+<div class="card" style="margin-top: 1rem;">
+  <div class="card-header">
+    <h3>Recent Sales</h3>
+    <%= link_to "View All Sales →", sales_path(product_id: @product.id), class: "link" %>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="data-table compact">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Customer</th>
+            <th>Vehicle</th>
+            <th>Quantity</th>
+            <th>Amount</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_sales.each do |sale| %>
+            <tr>
+              <td><%= sale.transaction_id %></td>
+              <td><%= sale.customer_name %></td>
+              <td><%= sale.vehicle.registration_number %></td>
+              <td><%= sale.quantity %> <%= @product.unit %></td>
+              <td class="positive"><%= number_to_currency(sale.total_amount) %></td>
+              <td><%= sale.transaction_date.strftime("%d/%m/%y") %></td>
+              
+          <% end %>
+        </tbody>
+      
+    </div>
+  </div>
+</div>

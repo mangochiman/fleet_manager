@@ -34,10 +34,10 @@ Rails.application.routes.draw do
   
   # Reports
   get "reports", to: "reports#index"
-  get "reports/sales", to: "reports#sales_report"
-  get "reports/expenses", to: "reports#expense_report"
-  get "reports/profit_loss", to: "reports#profit_loss_report"
-  get "reports/outstanding", to: "reports#outstanding_report"
+  get "reports/sales_report", to: "reports#sales_report"
+  get "reports/expenses_report", to: "reports#expenses_report"
+  get "reports/profit_loss_report", to: "reports#profit_loss_report"
+  get "reports/outstanding_report", to: "reports#outstanding_report"
   
   # Exports
   get "exports/sales", to: "exports#sales"

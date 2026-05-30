@@ -1,0 +1,37 @@
+wb = xlsx_package.workbook
+
+wb.add_worksheet(name: "Expenses Report") do |sheet|
+  sheet.add_row ["Expenses Report"]
+  sheet.add_row ["Period: #{@start_date.strftime("%B %d, %Y")} - #{@end_date.strftime("%B %d, %Y")}"]
+  sheet.add_row ["Generated: #{Time.current.strftime("%B %d, %Y at %I:%M %p")}"]
+  sheet.add_row []
+  
+  sheet.add_row ["SUMMARY"]
+  sheet.add_row ["Total Transactions", @total_transactions]
+  sheet.add_row ["Total Expenses", @total_expenses]
+  sheet.add_row []
+  
+  sheet.add_row ["EXPENSES BY CATEGORY"]
+  sheet.add_row ["Category", "Amount", "Percentage"]
+  @expenses_by_category.each do |category, amount|
+    percentage = @total_expenses > 0 ? (amount / @total_expenses.to_f * 100).round(1) : 0
+    sheet.add_row [category.titleize, amount, "#{percentage}%"]
+  end
+  sheet.add_row []
+  
+  sheet.add_row ["DETAILED EXPENSES"]
+  sheet.add_row ["Date", "Vehicle", "Category", "Description", "Amount", "Recorded By"]
+  @expenses.each do |expense|
+    sheet.add_row [
+      expense.expense_date.strftime("%d/%m/%y"),
+      expense.vehicle.registration_number,
+      expense.category.titleize,
+      expense.description,
+      expense.amount,
+      expense.recorded_by&.name || 'System'
+    ]
+  end
+  
+  sheet.add_row []
+  sheet.add_row ["Grand Total", "", "", "", @total_expenses, ""]
+end

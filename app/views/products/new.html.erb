@@ -1,4 +1,13 @@
-<div>
-  <h1 class="font-bold text-4xl">Products#new</h1>
-  <p>Find me in app/views/products/new.html.erb</p>
+<div class="page-header">
+  <h1>Add New Product</h1>
+  <p>Create a new product for your fleet operations</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Product Details</h3>
+  </div>
+  <div class="card-body">
+    <%= render 'form', product: @product, submit_text: "Add Product" %>
+  </div>
 </div>

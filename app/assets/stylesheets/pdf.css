@@ -1,0 +1,88 @@
+/* PDF Report Styles */
+body {
+  font-family: 'Helvetica', Arial, sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 20px;
+  color: #333;
+}
+
+.report-container {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.report-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #667eea;
+}
+
+.report-header h1 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  border-left: 3px solid #10b981;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 15px 0 10px 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+  font-size: 10px;
+}
+
+.report-table th {
+  background: #f8fafc;
+  padding: 8px;
+  text-align: left;
+  border-bottom: 2px solid #ddd;
+}
+
+.report-table td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.positive {
+  color: #10b981;
+}
+
+.negative {
+  color: #ef4444;
+}
+
+.footer {
+  margin-top: 20px;
+  padding-top: 10px;
+  text-align: center;
+  font-size: 9px;
+  color: #666;
+  border-top: 1px solid #ddd;
+}

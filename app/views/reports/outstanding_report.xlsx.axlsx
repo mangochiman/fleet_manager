@@ -1,0 +1,37 @@
+wb = xlsx_package.workbook
+
+wb.add_worksheet(name: "Outstanding Report") do |sheet|
+  sheet.add_row ["Outstanding Payments Report"]
+  sheet.add_row ["Generated: #{Time.current.strftime("%B %d, %Y at %I:%M %p")}"]
+  sheet.add_row []
+  
+  sheet.add_row ["SUMMARY"]
+  sheet.add_row ["Total Outstanding", @total_outstanding]
+  sheet.add_row ["Customers with Outstanding", @total_customers]
+  sheet.add_row []
+  
+  sheet.add_row ["AGING SUMMARY"]
+  sheet.add_row ["Age", "Amount", "Percentage"]
+  @aging_summary.each do |age, amount|
+    percentage = @total_outstanding > 0 ? (amount / @total_outstanding.to_f * 100).round(1) : 0
+    sheet.add_row [age, amount, "#{percentage}%"]
+  end
+  sheet.add_row []
+  
+  sheet.add_row ["OUTSTANDING TRANSACTIONS"]
+  sheet.add_row ["Date", "Transaction ID", "Customer", "Phone", "Vehicle", "Product", "Amount"]
+  @sales.each do |sale|
+    sheet.add_row [
+      sale.transaction_date.strftime("%d/%m/%y"),
+      sale.transaction_id,
+      sale.customer_name,
+      sale.customer_phone,
+      sale.vehicle.registration_number,
+      sale.product.name,
+      sale.total_amount
+    ]
+  end
+  
+  sheet.add_row []
+  sheet.add_row ["Grand Total", "", "", "", "", "", @total_outstanding]
+end

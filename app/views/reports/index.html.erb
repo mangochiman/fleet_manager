@@ -1,4 +1,176 @@
-<div>
-  <h1 class="font-bold text-4xl">Reports#index</h1>
-  <p>Find me in app/views/reports/index.html.erb</p>
+<div class="page-header">
+  <h1>Reports</h1>
+  <p>Generate and export business reports</p>
+</div>
+
+<!-- Date Range Selector -->
+<div class="card" style="margin-bottom: 1.5rem;">
+  <div class="card-header">
+    <h3>Select Date Range</h3>
+  </div>
+  <div class="card-body">
+    <%= form_tag reports_path, method: :get, style: "display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;" do %>
+      <div class="form-group" style="margin-bottom: 0;">
+        <%= label_tag :start_date, "Start Date" %>
+        <%= date_field_tag :start_date, @start_date, class: "form-control" %>
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <%= label_tag :end_date, "End Date" %>
+        <%= date_field_tag :end_date, @end_date, class: "form-control" %>
+      </div>
+      <div>
+        <%= submit_tag "Update Reports", class: "btn btn-primary btn-sm" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Summary Stats -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+    <div style="font-size: 0.7rem; color: #64748b;">Total Revenue</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@total_revenue) %></div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #ef4444;">
+    <div style="font-size: 0.7rem; color: #64748b;">Total Expenses</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #ef4444;"><%= number_to_currency(@total_expenses) %></div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+    <div style="font-size: 0.7rem; color: #64748b;">Net Profit</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@net_profit) %></div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #f59e0b;">
+    <div style="font-size: 0.7rem; color: #64748b;">Outstanding</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #f59e0b;"><%= number_to_currency(@outstanding_amount) %></div>
+    <div style="font-size: 0.7rem;"><%= @outstanding_count %> pending transactions</div>
+  </div>
+</div>
+
+<!-- Report Links Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+  <!-- Sales Report Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3>📊 Sales Report</h3>
+    </div>
+    <div class="card-body">
+      <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.875rem;">Detailed sales transactions with customer and product information.</p>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <%= link_to "View Report", reports_sales_report_path(start_date: @start_date, end_date: @end_date), class: "btn btn-primary btn-sm" %>
+        <%= link_to "Download PDF", reports_sales_report_path(start_date: @start_date, end_date: @end_date, format: :pdf), class: "btn btn-secondary btn-sm" %>
+        <%= link_to "Export Excel", reports_sales_report_path(start_date: @start_date, end_date: @end_date, format: :xlsx), class: "btn btn-secondary btn-sm" %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Expenses Report Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3>💸 Expenses Report</h3>
+    </div>
+    <div class="card-body">
+      <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.875rem;">Track expenses by category, vehicle, and date range.</p>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <%= link_to "View Report", reports_expenses_report_path(start_date: @start_date, end_date: @end_date), class: "btn btn-primary btn-sm" %>
+        <%= link_to "Download PDF", reports_expenses_report_path(start_date: @start_date, end_date: @end_date, format: :pdf), class: "btn btn-secondary btn-sm" %>
+        <%= link_to "Export Excel", reports_expenses_report_path(start_date: @start_date, end_date: @end_date, format: :xlsx), class: "btn btn-secondary btn-sm" %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Profit & Loss Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3>📈 Profit & Loss Report</h3>
+    </div>
+    <div class="card-body">
+      <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.875rem;">Monthly breakdown of revenue, expenses, and profit margins.</p>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <%= link_to "View Report", reports_profit_loss_report_path(start_date: @start_date, end_date: @end_date), class: "btn btn-primary btn-sm" %>
+        <%= link_to "Download PDF", reports_profit_loss_report_path(start_date: @start_date, end_date: @end_date, format: :pdf), class: "btn btn-secondary btn-sm" %>
+        <%= link_to "Export Excel", reports_profit_loss_report_path(start_date: @start_date, end_date: @end_date, format: :xlsx), class: "btn btn-secondary btn-sm" %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Outstanding Payments Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3>⏳ Outstanding Payments Report</h3>
+    </div>
+    <div class="card-body">
+      <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.875rem;">Track pending customer payments with aging analysis.</p>
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <%= link_to "View Report", reports_outstanding_report_path, class: "btn btn-primary btn-sm" %>
+        <%= link_to "Download PDF", reports_outstanding_report_path(format: :pdf), class: "btn btn-secondary btn-sm" %>
+        <%= link_to "Export Excel", reports_outstanding_report_path(format: :xlsx), class: "btn btn-secondary btn-sm" %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Stats Tables - Side by side with proper card fitting -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+  <!-- Top Products -->
+  <div class="card">
+    <div class="card-header">
+      <h3>🏆 Top 5 Products by Revenue</h3>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Product</th>
+              <th style="text-align: right; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Revenue</th>
+              <th style="text-align: right; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">% of Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @sales_by_product.each do |product_id, amount| %>
+              <% product = Product.find_by(id: product_id) %>
+              <% next unless product %>
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 0.75rem; font-size: 0.8rem;"><strong><%= product.name %></strong></td>
+                <td style="padding: 0.75rem; font-size: 0.8rem; text-align: right; color: #10b981;"><%= number_to_currency(amount) %></td>
+                <td style="padding: 0.75rem; font-size: 0.8rem; text-align: right; color: #64748b;"><%= number_to_percentage((amount / @total_revenue.to_f * 100), precision: 1) if @total_revenue > 0 %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Expenses by Category -->
+  <div class="card">
+    <div class="card-header">
+      <h3>📊 Expenses by Category</h3>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Category</th>
+              <th style="text-align: right; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Amount</th>
+              <th style="text-align: right; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">% of Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @expenses_by_category.each do |category, amount| %>
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 0.75rem; font-size: 0.8rem;"><strong><%= category.titleize %></strong></td>
+                <td style="padding: 0.75rem; font-size: 0.8rem; text-align: right; color: #ef4444;"><%= number_to_currency(amount) %></td>
+                <td style="padding: 0.75rem; font-size: 0.8rem; text-align: right; color: #64748b;"><%= number_to_percentage((amount / @total_expenses.to_f * 100), precision: 1) if @total_expenses > 0 %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>

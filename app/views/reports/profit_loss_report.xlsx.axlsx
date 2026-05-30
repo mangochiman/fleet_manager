@@ -1,0 +1,28 @@
+wb = xlsx_package.workbook
+
+wb.add_worksheet(name: "Profit & Loss") do |sheet|
+  sheet.add_row ["Profit & Loss Report"]
+  sheet.add_row ["Period: #{@start_date.strftime("%B %d, %Y")} - #{@end_date.strftime("%B %d, %Y")}"]
+  sheet.add_row ["Generated: #{Time.current.strftime("%B %d, %Y at %I:%M %p")}"]
+  sheet.add_row []
+  
+  sheet.add_row ["SUMMARY"]
+  sheet.add_row ["Total Revenue", @total_revenue]
+  sheet.add_row ["Total Expenses", @total_expenses]
+  sheet.add_row ["Net Profit", @net_profit]
+  sheet.add_row ["Profit Margin", @total_revenue > 0 ? "#{(@net_profit / @total_revenue.to_f * 100).round(1)}%" : "0%"]
+  sheet.add_row []
+  
+  sheet.add_row ["MONTHLY BREAKDOWN"]
+  sheet.add_row ["Month", "Revenue", "Expenses", "Profit", "Margin"]
+  @months.each do |month|
+    revenue = @revenue_by_month[month] || 0
+    expenses = @expenses_by_month[month] || 0
+    profit = revenue - expenses
+    margin = revenue > 0 ? (profit / revenue.to_f * 100).round(1) : 0
+    sheet.add_row [Date.strptime(month, '%Y-%m').strftime("%B %Y"), revenue, expenses, profit, "#{margin}%"]
+  end
+  
+  sheet.add_row []
+  sheet.add_row ["TOTAL", @total_revenue, @total_expenses, @net_profit, @total_revenue > 0 ? "#{(@net_profit / @total_revenue.to_f * 100).round(1)}%" : "0%"]
+end

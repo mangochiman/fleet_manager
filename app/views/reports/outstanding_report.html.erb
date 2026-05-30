@@ -1,0 +1,179 @@
+<% content_for :title do %>
+  Outstanding Payments Report
+<% end %>
+
+<style>
+  .report-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .report-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f59e0b;
+  }
+  .report-header h1 {
+    font-size: 1.5rem;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+  }
+  .report-header p {
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .summary-card {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    border-left: 3px solid #f59e0b;
+  }
+  .summary-card .label {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .summary-card .value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+  }
+  .report-table th {
+    background: #f8fafc;
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #1e293b;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .report-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+  }
+  .text-right { text-align: right; }
+  .footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    text-align: center;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    border-top: 1px solid #e2e8f0;
+  }
+  @media (max-width: 768px) {
+    .summary-cards { grid-template-columns: 1fr; }
+    .report-container { padding: 1rem; }
+  }
+</style>
+
+<div class="report-container">
+  <div class="report-header">
+    <h1>⏳ Outstanding Payments Report</h1>
+    <p>Generated on: <%= Time.current.strftime("%B %d, %Y at %I:%M %p") %></p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <div class="summary-card">
+      <div class="label">Total Outstanding</div>
+      <div class="value positive"><%= number_to_currency(@total_outstanding) %></div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Customers with Outstanding</div>
+      <div class="value"><%= @total_customers %></div>
+    </div>
+  </div>
+
+  <!-- Aging Summary -->
+  <div class="section-title">📊 Aging Summary</div>
+  <table class="report-table">
+    <thead>
+      <tr>
+        <th>Age</th>
+        <th class="text-right">Amount</th>
+        <th class="text-right">Percentage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @aging_summary.each do |age, amount| %>
+        <tr>
+          <td><%= age %></td>
+          <td class="text-right positive"><%= number_to_currency(amount) %></td>
+          <td class="text-right"><%= number_to_percentage((amount / @total_outstanding.to_f * 100), precision: 1) if @total_outstanding > 0 %></td>
+        </tr>
+      <% end %>
+    </tbody>
+    <tfoot>
+      <tr style="background: #f8fafc; font-weight: 600;">
+        <td class="text-right">Total:</td>
+        <td class="text-right positive"><%= number_to_currency(@total_outstanding) %></td>
+        <td class="text-right">100%</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- Detailed Outstanding Transactions -->
+  <div class="section-title">📋 Outstanding Transactions</div>
+  <div style="overflow-x: auto;">
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Transaction ID</th>
+          <th>Customer</th>
+          <th>Vehicle</th>
+          <th>Product</th>
+          <th class="text-right">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @sales.each do |sale| %>
+          <tr>
+            <td><%= sale.transaction_date.strftime("%d/%m/%y") %></td>
+            <td><%= sale.transaction_id %></td>
+            <td><%= sale.customer_name %><br><small><%= sale.customer_phone %></small></td>
+            <td><%= sale.vehicle.registration_number %></td>
+            <td><%= sale.product.name %></td>
+            <td class="text-right positive"><%= number_to_currency(sale.total_amount) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr style="background: #f8fafc; font-weight: 600;">
+          <td colspan="5" class="text-right">Grand Total:</td>
+          <td class="text-right positive"><%= number_to_currency(@total_outstanding) %></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="footer">
+    <p>Fleet Management System - Confidential Report</p>
+  </div>
+</div>

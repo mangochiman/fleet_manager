@@ -1,0 +1,285 @@
+<style>
+  body {
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1e293b;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .report-header {
+    text-align: center;
+    margin-bottom: 35px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #667eea;
+  }
+
+  .company-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #667eea;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .report-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 10px 0;
+    letter-spacing: -0.5px;
+  }
+
+  .report-meta {
+    font-size: 14px;
+    color: #64748b;
+    margin: 5px 0;
+  }
+
+  .summary-grid {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 35px;
+  }
+
+  .summary-card {
+    flex: 1;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 18px 12px;
+    text-align: center;
+    border-top: 3px solid #667eea;
+  }
+
+  .summary-card .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .summary-card .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .positive { color: #10b981; font-weight: 700; }
+  .negative { color: #ef4444; font-weight: 700; }
+  .neutral  { color: #667eea; font-weight: 700; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #667eea;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 30px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+    font-size: 13px;
+  }
+
+  .report-table th {
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 11px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .report-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+    vertical-align: middle;
+    font-size: 13px;
+  }
+
+  .report-table tbody tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  .report-table tbody tr:hover td {
+    background: #f1f5f9;
+  }
+
+  .report-table tfoot td {
+    padding: 12px 10px;
+    background: #1e293b;
+    color: #f8fafc;
+    font-weight: 700;
+    border-top: 2px solid #667eea;
+    font-size: 14px;
+  }
+
+  .report-table tfoot .positive {
+    color: #34d399;
+  }
+
+  .text-right  { text-align: right; }
+  .text-center { text-align: center; }
+  .text-left   { text-align: left; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .badge-outstanding { background: #fed7aa; color: #c2410c; }
+  .badge-paid        { background: #bbf7d0; color: #15803d; }
+  .badge-banked      { background: #bfdbfe; color: #1d4ed8; }
+
+  .sub-text {
+    font-size: 11px;
+    color: #94a3b8;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .footer {
+    margin-top: 40px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+</style>
+
+<%# ── Header ─────────────────────────────────────────────── %>
+<div class="report-header">
+  <div class="company-name">Fleet Management System</div>
+  <div class="report-title">Sales Report</div>
+  <p class="report-meta">
+    Period: <strong><%= @start_date.strftime("%B %d, %Y") %></strong>
+    &mdash;
+    <strong><%= @end_date.strftime("%B %d, %Y") %></strong>
+  </p>
+  <p class="report-meta">Generated: <%= Time.current.strftime("%B %d, %Y at %I:%M %p") %></p>
+</div>
+
+<%# ── Summary Cards ───────────────────────────────────────── %>
+<div class="summary-grid">
+  <div class="summary-card">
+    <div class="label">Total Transactions</div>
+    <div class="value neutral"><%= number_with_delimiter(@total_transactions) %></div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Total Revenue</div>
+    <div class="value positive"><%= number_to_currency(@total_revenue) %></div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Avg Transaction</div>
+    <div class="value"><%= number_to_currency(@average_transaction) %></div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Reporting Period</div>
+    <div class="value"><%= ((@end_date - @start_date).to_i + 1) %> days</div>
+  </div>
+</div>
+
+<%# ── Sales by Status ─────────────────────────────────────── %>
+<div class="section-title">Sales by Payment Status</div>
+<table class="report-table">
+  <thead>
+    <tr>
+      <th>Status</th>
+      <th class="text-right">Transactions</th>
+      <th class="text-right">Amount</th>
+      <th class="text-right">% of Revenue</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% ['outstanding', 'paid', 'banked'].each do |status| %>
+      <% amount = @status_amounts[status] || 0 %>
+      <% count  = @status_counts[status]  || 0 %>
+      <tr>
+        <td><span class="badge badge-<%= status %>"><%= status.titleize %></span></td>
+        <td class="text-right"><%= number_with_delimiter(count) %></td>
+        <td class="text-right positive"><%= number_to_currency(amount) %></td>
+        <td class="text-right">
+          <%= @total_revenue > 0 ? number_to_percentage((amount / @total_revenue.to_f * 100), precision: 1) : '0.0%' %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td class="text-right"><strong><%= number_with_delimiter(@total_transactions) %></strong></td>
+      <td class="text-right positive"><strong><%= number_to_currency(@total_revenue) %></strong></td>
+      <td class="text-right"><strong>100%</strong></td>
+    </tr>
+  </tfoot>
+</table>
+
+<%# ── Detailed Transactions ───────────────────────────────── %>
+<div class="section-title">Detailed Transaction List</div>
+<table class="report-table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Transaction ID</th>
+      <th>Customer</th>
+      <th>Product</th>
+      <th class="text-right">Qty</th>
+      <th class="text-right">Unit Price</th>
+      <th class="text-right">Total</th>
+      <th class="text-center">Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @sales.each do |sale| %>
+      <tr>
+        <td><strong><%= sale.transaction_date.strftime("%d %b %Y") %></strong></td>
+        <td><%= sale.transaction_id %></td>
+        <td>
+          <%= sale.customer_name %>
+          <span class="sub-text"><%= sale.customer_phone %></span>
+        </td>
+        <td><%= sale.product.name %></td>
+        <td class="text-right"><%= number_with_delimiter(sale.quantity) %> <%= sale.product.unit %></td>
+        <td class="text-right"><%= number_to_currency(sale.unit_price) %></td>
+        <td class="text-right positive"><%= number_to_currency(sale.total_amount) %></td>
+        <td class="text-center">
+          <span class="badge badge-<%= sale.payment_status %>">
+            <%= sale.payment_status.titleize %>
+          </span>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="6" class="text-right">Grand Total</td>
+      <td class="text-right positive"><strong><%= number_to_currency(@total_revenue) %></strong></td>
+      <td></td>
+    </tr>
+  </tfoot>
+</table>
+
+<%# ── Footer ─────────────────────────────────────────────── %>
+<div class="footer">
+  <span>Fleet Management System &copy; <%= Date.current.year %> &mdash; Confidential</span>
+  <span>This report is computer-generated and does not require a signature.</span>
+</div>

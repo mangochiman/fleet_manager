@@ -1,0 +1,223 @@
+<style>
+  body {
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1e293b;
+    margin: 0;
+    padding: 20px;
+  }
+
+  .report-header {
+    text-align: center;
+    margin-bottom: 35px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #10b981;
+  }
+
+  .company-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #10b981;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .report-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 10px 0;
+    letter-spacing: -0.5px;
+  }
+
+  .report-meta {
+    font-size: 14px;
+    color: #64748b;
+    margin: 5px 0;
+  }
+
+  .summary-grid {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 35px;
+  }
+
+  .summary-card {
+    flex: 1;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 18px 12px;
+    text-align: center;
+    border-top: 3px solid #10b981;
+  }
+
+  .summary-card .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .summary-card .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .positive { color: #10b981; font-weight: 700; }
+  .negative { color: #ef4444; font-weight: 700; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #10b981;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 30px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+    font-size: 13px;
+  }
+
+  .report-table th {
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 11px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .report-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+    vertical-align: middle;
+    font-size: 13px;
+  }
+
+  .report-table tbody tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  .report-table tfoot td {
+    padding: 12px 10px;
+    background: #1e293b;
+    color: #f8fafc;
+    font-weight: 700;
+    border-top: 2px solid #10b981;
+    font-size: 14px;
+  }
+
+  .report-table tfoot .positive { color: #34d399; }
+  .report-table tfoot .negative { color: #fca5a5; }
+
+  .text-right  { text-align: right; }
+  .text-center { text-align: center; }
+
+  .footer {
+    margin-top: 40px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+</style>
+
+<%# ── Header ─────────────────────────────────────────────── %>
+<div class="report-header">
+  <div class="company-name">Fleet Management System</div>
+  <div class="report-title">Profit &amp; Loss Report</div>
+  <p class="report-meta">
+    Period: <strong><%= @start_date.strftime("%B %d, %Y") %></strong>
+    &mdash;
+    <strong><%= @end_date.strftime("%B %d, %Y") %></strong>
+  </p>
+  <p class="report-meta">Generated: <%= Time.current.strftime("%B %d, %Y at %I:%M %p") %></p>
+</div>
+
+<%# ── Summary Cards ───────────────────────────────────────── %>
+<div class="summary-grid">
+  <div class="summary-card">
+    <div class="label">Total Revenue</div>
+    <div class="value positive"><%= number_to_currency(@total_revenue) %></div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Total Expenses</div>
+    <div class="value negative"><%= number_to_currency(@total_expenses) %></div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Net Profit</div>
+    <div class="value <%= @net_profit >= 0 ? 'positive' : 'negative' %>">
+      <%= number_to_currency(@net_profit) %>
+    </div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Profit Margin</div>
+    <div class="value <%= @net_profit >= 0 ? 'positive' : 'negative' %>">
+      <%= number_to_percentage(@total_revenue > 0 ? (@net_profit / @total_revenue.to_f * 100) : 0, precision: 1) %>
+    </div>
+  </div>
+</div>
+
+<%# ── Monthly Breakdown ───────────────────────────────────── %>
+<div class="section-title">Monthly Breakdown</div>
+<table class="report-table">
+  <thead>
+    <tr>
+      <th>Month</th>
+      <th class="text-right">Revenue</th>
+      <th class="text-right">Expenses</th>
+      <th class="text-right">Profit</th>
+      <th class="text-right">Margin</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @months.each do |month| %>
+      <% revenue  = @revenue_by_month[month]  || 0 %>
+      <% expenses = @expenses_by_month[month] || 0 %>
+      <% profit   = revenue - expenses %>
+      <% margin   = revenue > 0 ? (profit / revenue.to_f * 100) : 0 %>
+      <tr>
+        <td><strong><%= Date.strptime(month, '%Y-%m').strftime("%B %Y") %></strong></td>
+        <td class="text-right positive"><%= number_to_currency(revenue) %></td>
+        <td class="text-right negative"><%= number_to_currency(expenses) %></td>
+        <td class="text-right <%= profit >= 0 ? 'positive' : 'negative' %>"><%= number_to_currency(profit) %></td>
+        <td class="text-right <%= margin >= 0 ? 'positive' : 'negative' %>"><%= number_to_percentage(margin, precision: 1) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td class="text-right positive"><strong><%= number_to_currency(@total_revenue) %></strong></td>
+      <td class="text-right negative"><strong><%= number_to_currency(@total_expenses) %></strong></td>
+      <td class="text-right <%= @net_profit >= 0 ? 'positive' : 'negative' %>">
+        <strong><%= number_to_currency(@net_profit) %></strong>
+      </td>
+      <td class="text-right <%= @net_profit >= 0 ? 'positive' : 'negative' %>">
+        <strong><%= number_to_percentage(@total_revenue > 0 ? (@net_profit / @total_revenue.to_f * 100) : 0, precision: 1) %></strong>
+      </td>
+    </tr>
+  </tfoot>
+</table>
+
+<%# ── Footer ─────────────────────────────────────────────── %>
+<div class="footer">
+  <span>Fleet Management System &copy; <%= Date.current.year %> &mdash; Confidential</span>
+  <span>This report is computer-generated and does not require a signature.</span>
+</div>
