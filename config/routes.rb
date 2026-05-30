@@ -43,4 +43,9 @@ Rails.application.routes.draw do
   get "exports/sales", to: "exports#sales"
   get "exports/expenses", to: "exports#expenses"
   get "exports/outstanding", to: "exports#outstanding"
+
+  match "/404", to: "errors#not_found",            via: :all
+  match "/500", to: "errors#internal_server_error", via: :all
+  match "/422", to: "errors#unprocessable_entity",  via: :all
+  
 end
