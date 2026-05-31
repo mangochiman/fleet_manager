@@ -2,7 +2,11 @@ class ProductsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_product, only: [:show, :edit, :update, :destroy, :toggle_status]
   
+  # Role restrictions
+  before_action :authorize_admin!, only: [:new, :create, :edit, :update, :destroy, :toggle_status]
+  
   def index
+    # Role-based filtering - everyone can see products but with limitations
     @products = Product.all.order(:name)
     
     # Apply filters
@@ -35,14 +39,31 @@ class ProductsController < ApplicationController
   end
   
   def show
+    # Everyone can view product details
     @recent_sales = @product.sales.includes(:user, :vehicle).order(created_at: :desc).limit(5)
   end
   
   def new
+    authorize_admin!
+    
+    # Drivers cannot create products
+    if current_user.driver?
+      redirect_to products_path, alert: 'Drivers cannot create products.'
+      return
+    end
+    
     @product = Product.new
   end
   
   def create
+    authorize_admin!
+    
+    # Drivers cannot create products
+    if current_user.driver?
+      redirect_to products_path, alert: 'Drivers cannot create products.'
+      return
+    end
+    
     @product = Product.new(product_params)
     
     if @product.save
@@ -53,9 +74,24 @@ class ProductsController < ApplicationController
   end
   
   def edit
+    authorize_admin!
+    
+    # Drivers cannot edit products
+    if current_user.driver?
+      redirect_to products_path, alert: 'Drivers cannot edit products.'
+      return
+    end
   end
   
   def update
+    authorize_admin!
+    
+    # Drivers cannot update products
+    if current_user.driver?
+      redirect_to products_path, alert: 'Drivers cannot update products.'
+      return
+    end
+    
     if @product.update(product_params)
       redirect_to @product, notice: 'Product was successfully updated.'
     else
@@ -64,6 +100,14 @@ class ProductsController < ApplicationController
   end
   
   def destroy
+    authorize_admin!
+    
+    # Drivers cannot delete products
+    if current_user.driver?
+      redirect_to products_path, alert: 'Drivers cannot delete products.'
+      return
+    end
+    
     # Check if product has associated sales
     if @product.sales.exists?
       redirect_to products_path, alert: 'Cannot delete product with associated sales. Consider deactivating instead.'
@@ -74,6 +118,14 @@ class ProductsController < ApplicationController
   end
   
   def toggle_status
+    authorize_admin!
+    
+    # Drivers cannot toggle product status
+    if current_user.driver?
+      redirect_to products_path, alert: 'Drivers cannot change product status.'
+      return
+    end
+    
     @product.toggle_status!
     redirect_to products_path, notice: "Product is now #{@product.active? ? 'active' : 'inactive'}."
   end
@@ -82,6 +134,8 @@ class ProductsController < ApplicationController
   
   def set_product
     @product = Product.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to products_path, alert: 'Product not found.'
   end
   
   def product_params

@@ -2,8 +2,25 @@ class VehiclesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_vehicle, only: [:show, :edit, :update, :destroy]
   
+  # Role restrictions
+  before_action :authorize_admin!, only: [:new, :create, :edit, :update, :destroy]
+  
   def index
-    @vehicles = Vehicle.all.order(:registration_number)
+    # Role-based filtering
+    if current_user.driver?
+      # Drivers can only see their assigned vehicle
+      if current_user.vehicle_id.present?
+        @vehicles = Vehicle.where(id: current_user.vehicle_id)
+      else
+        @vehicles = Vehicle.none
+        redirect_to dashboard_path, alert: 'No vehicle assigned to your account.' and return
+      end
+    else
+      # Admins, Managers, Super Admins see all vehicles
+      @vehicles = Vehicle.all
+    end
+    
+    @vehicles = @vehicles.order(:registration_number)
     
     # Apply filters
     if params[:status].present?
@@ -32,15 +49,37 @@ class VehiclesController < ApplicationController
   end
   
   def show
+    # Drivers can only view their assigned vehicle
+    if current_user.driver? && @vehicle.id != current_user.vehicle_id
+      redirect_to vehicles_path, alert: 'You can only view your assigned vehicle.'
+      return
+    end
+    
     @recent_sales = @vehicle.sales.includes(:product, :user).order(created_at: :desc).limit(5)
     @recent_expenses = @vehicle.expenses.order(expense_date: :desc).limit(5)
   end
   
   def new
+    authorize_admin!
+    
+    # Drivers cannot create vehicles
+    if current_user.driver?
+      redirect_to vehicles_path, alert: 'Drivers cannot create vehicles.'
+      return
+    end
+    
     @vehicle = Vehicle.new
   end
   
   def create
+    authorize_admin!
+    
+    # Drivers cannot create vehicles
+    if current_user.driver?
+      redirect_to vehicles_path, alert: 'Drivers cannot create vehicles.'
+      return
+    end
+    
     @vehicle = Vehicle.new(vehicle_params)
     
     if @vehicle.save
@@ -51,9 +90,24 @@ class VehiclesController < ApplicationController
   end
   
   def edit
+    authorize_admin!
+    
+    # Drivers cannot edit vehicles
+    if current_user.driver?
+      redirect_to vehicles_path, alert: 'Drivers cannot edit vehicles.'
+      return
+    end
   end
   
   def update
+    authorize_admin!
+    
+    # Drivers cannot update vehicles
+    if current_user.driver?
+      redirect_to vehicles_path, alert: 'Drivers cannot update vehicles.'
+      return
+    end
+    
     if @vehicle.update(vehicle_params)
       redirect_to @vehicle, notice: 'Vehicle was successfully updated.'
     else
@@ -62,6 +116,14 @@ class VehiclesController < ApplicationController
   end
   
   def destroy
+    authorize_admin!
+    
+    # Drivers cannot delete vehicles
+    if current_user.driver?
+      redirect_to vehicles_path, alert: 'Drivers cannot delete vehicles.'
+      return
+    end
+    
     # Check if vehicle has associated records
     if @vehicle.sales.exists? || @vehicle.expenses.exists? || @vehicle.users.exists?
       redirect_to vehicles_path, alert: 'Cannot delete vehicle with associated sales, expenses, or drivers. Consider marking as retired instead.'
@@ -75,6 +137,8 @@ class VehiclesController < ApplicationController
   
   def set_vehicle
     @vehicle = Vehicle.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to vehicles_path, alert: 'Vehicle not found.'
   end
   
   def vehicle_params

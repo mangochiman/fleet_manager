@@ -2,15 +2,30 @@ class SalesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_sale, only: [:show, :edit, :update, :destroy, :mark_paid, :mark_banked, :mark_paid_form, :record_payment_form, :record_payment, :proof]
   
+  # Role restrictions
+  before_action :authorize_admin!, only: [:edit, :update, :destroy, :mark_paid, :mark_banked]
+  
   def index
     # Set per_page from params or default to 20
     @per_page = (params[:per_page] || 20).to_i
     @per_page = 100 if @per_page > 100 # Max limit
     
-    # Start with base query
-    @sales = Sale.includes(:user, :vehicle, :product)
-                .order(created_at: :desc)
-                .paginate(page: params[:page], per_page: @per_page)
+    # Role-based filtering
+    if current_user.driver?
+      # Drivers can only see their own sales
+      @sales = Sale.where(user_id: current_user.id)
+      
+      # Render driver-specific view
+      render :driver_index and return
+    else
+      # Admins, Managers, Super Admins see all sales
+      @sales = Sale.all
+    end
+    
+    # Start with base query for non-drivers
+    @sales = @sales.includes(:user, :vehicle, :product)
+                  .order(created_at: :desc)
+                  .paginate(page: params[:page], per_page: @per_page)
     
     # Apply search filter if present
     if params[:search].present?
@@ -24,25 +39,42 @@ class SalesController < ApplicationController
     end
     
     # Stats (unfiltered totals)
-    @total_sales = Sale.sum(:total_amount)
-    @outstanding_sales = Sale.outstanding.sum(:total_amount)
-    @partial_sales = Sale.partial.sum(:total_amount)
-    @paid_sales = Sale.paid.sum(:total_amount)
+    @total_sales = @sales.sum(:total_amount)
+    @outstanding_sales = @sales.outstanding.sum(:total_amount)
+    @partial_sales = @sales.partial.sum(:total_amount)
+    @paid_sales = @sales.paid.sum(:total_amount)
   end
   
   def show
     @payment_histories = @sale.payment_histories.order(created_at: :desc)
+    
+    # Drivers can only view their own sales
+    if current_user.driver? && @sale.user_id != current_user.id
+      redirect_to sales_path, alert: 'You can only view your own sales.'
+    end
   end
   
   def new
     @sale = Sale.new
     @products = Product.active
-    @vehicles = Vehicle.active
+    
+    # Role-based vehicle selection
+    if current_user.driver?
+      # Drivers can only select their assigned vehicle
+      @vehicles = Vehicle.where(id: current_user.vehicle_id).active
+    else
+      @vehicles = Vehicle.active
+    end
   end
   
   def create
     @sale = Sale.new(sale_params)
     @sale.user_id = current_user.id
+    
+    # Drivers can only create sales for their assigned vehicle
+    if current_user.driver?
+      @sale.vehicle_id = current_user.vehicle_id
+    end
     
     # Get product price and set unit_price (auto-populated, read-only)
     if params[:sale][:product_id].present?
@@ -59,17 +91,37 @@ class SalesController < ApplicationController
       redirect_to @sale, notice: 'Sale was successfully created.'
     else
       @products = Product.active
-      @vehicles = Vehicle.active
+      if current_user.driver?
+        @vehicles = Vehicle.where(id: current_user.vehicle_id).active
+      else
+        @vehicles = Vehicle.active
+      end
       render :new
     end
   end
   
   def edit
     @products = Product.active
-    @vehicles = Vehicle.active
+    
+    if current_user.driver?
+      @vehicles = Vehicle.where(id: current_user.vehicle_id).active
+    else
+      @vehicles = Vehicle.active
+    end
+    
+    # Check authorization
+    if current_user.driver? && @sale.user_id != current_user.id
+      redirect_to sales_path, alert: 'You can only edit your own sales.'
+    end
   end
   
   def update
+    # Check authorization
+    if current_user.driver? && @sale.user_id != current_user.id
+      redirect_to sales_path, alert: 'You can only update your own sales.'
+      return
+    end
+    
     # Get product price if product changed
     if params[:sale][:product_id].present? && params[:sale][:product_id] != @sale.product_id.to_s
       product = Product.find(params[:sale][:product_id])
@@ -85,22 +137,41 @@ class SalesController < ApplicationController
       redirect_to @sale, notice: 'Sale was successfully updated.'
     else
       @products = Product.active
-      @vehicles = Vehicle.active
+      if current_user.driver?
+        @vehicles = Vehicle.where(id: current_user.vehicle_id).active
+      else
+        @vehicles = Vehicle.active
+      end
       render :edit
     end
   end
   
   def destroy
+    # Check authorization
+    if current_user.driver?
+      redirect_to sales_path, alert: 'Drivers cannot delete sales.'
+      return
+    end
+    
     @sale.destroy
     redirect_to sales_path, notice: 'Sale was successfully deleted.'
   end
   
   def mark_paid_form
-    # Render the form to collect payment proof for full payment
+    # Only admins and managers can mark payments
+    unless current_user.admin? || current_user.manager? || current_user.super_admin?
+      redirect_to @sale, alert: 'You are not authorized to mark payments.'
+    end
   end
   
   def mark_paid
     @sale = Sale.find(params[:id])
+    
+    # Only admins and managers can mark payments
+    unless current_user.admin? || current_user.manager? || current_user.super_admin?
+      redirect_to @sale, alert: 'You are not authorized to mark payments.'
+      return
+    end
     
     proof_image = nil
     if params[:proof_image].present?
@@ -126,6 +197,12 @@ class SalesController < ApplicationController
   end
   
   def mark_banked
+    # Only admins and managers can mark banked
+    unless current_user.admin? || current_user.manager? || current_user.super_admin?
+      redirect_to @sale, alert: 'You are not authorized to mark payments as banked.'
+      return
+    end
+    
     if @sale.mark_as_banked!(notes: params[:notes], updated_by: current_user)
       redirect_to @sale, notice: 'Payment marked as banked successfully.'
     else
@@ -134,11 +211,20 @@ class SalesController < ApplicationController
   end
   
   def record_payment_form
-    # Render the form to record partial payment
+    # Only admins and managers can record payments
+    unless current_user.admin? || current_user.manager? || current_user.super_admin?
+      redirect_to @sale, alert: 'You are not authorized to record payments.'
+    end
   end
   
   def record_payment
     @sale = Sale.find(params[:id])
+    
+    # Only admins and managers can record payments
+    unless current_user.admin? || current_user.manager? || current_user.super_admin?
+      redirect_to @sale, alert: 'You are not authorized to record payments.'
+      return
+    end
     
     amount = params[:payment_amount].to_f
     
@@ -182,6 +268,13 @@ class SalesController < ApplicationController
   
   def proof
     @sale = Sale.find(params[:id])
+    
+    # Drivers can only view proof of their own sales
+    if current_user.driver? && @sale.user_id != current_user.id
+      redirect_to sales_path, alert: 'You can only view proof for your own sales.'
+      return
+    end
+    
     @payment_history = if params[:history_id].present?
       @sale.payment_histories.find(params[:history_id])
     else

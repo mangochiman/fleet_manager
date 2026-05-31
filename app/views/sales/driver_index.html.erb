@@ -1,0 +1,190 @@
+<div class="page-header">
+  <h1>My Sales</h1>
+  <p>View and manage your sales transactions</p>
+</div>
+
+<!-- Compact Summary Bar for Drivers -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+    <div style="font-size: 0.7rem; color: #64748b;">My Total Revenue</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@total_sales) %></div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #f59e0b;">
+    <div style="font-size: 0.7rem; color: #64748b;">My Outstanding</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #f59e0b;"><%= number_to_currency(@outstanding_sales) %></div>
+    <div style="font-size: 0.7rem;"><%= @sales.outstanding.count %> pending payments</div>
+  </div>
+  
+  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
+    <div style="font-size: 0.7rem; color: #64748b;">My Transactions</div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @sales.total_entries %></div>
+  </div>
+</div>
+
+<!-- Search and Filter Bar -->
+<div style="margin-bottom: 1.5rem;">
+  <%= form_tag sales_path, method: :get, style: "display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;" do %>
+    <%= text_field_tag :search, params[:search], placeholder: "Search by customer...", class: "form-control", style: "flex: 1; min-width: 150px;" %>
+    <%= select_tag :status, options_for_select([["All", ""], ["Outstanding", "outstanding"], ["Partial", "partial"], ["Paid", "paid"], ["Banked", "banked"]], params[:status]), class: "form-control", style: "width: auto; min-width: 100px;" %>
+    
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <span style="font-size: 0.75rem; color: #64748b;">Show:</span>
+      <%= select_tag :per_page, options_for_select([10, 20, 50, 100], params[:per_page] || 20), class: "form-control", style: "width: auto; min-width: 65px;", onchange: "this.form.submit()" %>
+    </div>
+    
+    <%= submit_tag "Filter", class: "btn btn-primary btn-sm" %>
+    <%= link_to "Clear", sales_path, class: "btn btn-secondary btn-sm" %>
+  <% end %>
+</div>
+
+<!-- Mobile Cards View -->
+<div class="mobile-cards" style="display: none;">
+  <% @sales.each do |sale| %>
+    <div class="card" style="margin-bottom: 1rem;">
+      <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <strong><%= sale.transaction_id %></strong>
+        <span class="badge badge-<%= sale.payment_status %>" style="background: white; color: #1e293b;"><%= sale.payment_status.titleize %></span>
+      </div>
+      <div class="card-body" style="padding: 1rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <div style="font-size: 0.7rem; color: #64748b;">Customer:</div>
+          <div style="font-size: 0.8rem;"><%= sale.customer_name %><br><small><%= sale.customer_phone %></small></div>
+          
+          <div style="font-size: 0.7rem; color: #64748b;">Product:</div>
+          <div style="font-size: 0.8rem;"><%= sale.product.name %><br><small><%= sale.quantity %> <%= sale.product.unit %></small></div>
+          
+          <div style="font-size: 0.7rem; color: #64748b;">Amount:</div>
+          <div style="font-size: 0.8rem; color: #10b981;"><%= number_to_currency(sale.total_amount) %></div>
+          
+          <div style="font-size: 0.7rem; color: #64748b;">Paid:</div>
+          <div style="font-size: 0.8rem;"><%= number_to_currency(sale.paid_amount || 0) %></div>
+          
+          <div style="font-size: 0.7rem; color: #64748b;">Balance:</div>
+          <div style="font-size: 0.8rem; color: #ef4444;"><%= number_to_currency(sale.remaining_balance) %></div>
+          
+          <div style="font-size: 0.7rem; color: #64748b;">Date:</div>
+          <div style="font-size: 0.8rem;"><%= sale.transaction_date.strftime("%d/%m/%y") %></div>
+        </div>
+        
+        <% if sale.partial? %>
+          <div style="background: #e2e8f0; border-radius: 0.25rem; overflow: hidden; margin: 0.5rem 0;">
+            <div style="width: <%= sale.payment_percentage %>%; height: 4px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+          </div>
+          <div style="font-size: 0.65rem; text-align: center; color: #64748b;"><%= sale.payment_percentage %>% Paid</div>
+        <% end %>
+        
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+          <%= link_to "View Details", sale, class: "btn btn-secondary btn-sm", style: "flex: 1; text-align: center;" %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Desktop Table View (Simplified for Drivers) -->
+<div class="desktop-table" style="overflow-x: auto;">
+  <div class="card">
+    <div class="card-header">
+      <h3>My Sales</h3>
+      <div style="display: flex; gap: 0.5rem;">
+        <%= link_to "+ New Sale", new_sale_path, class: "btn btn-primary btn-sm" %>
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Product</th>
+              <th>Amount</th>
+              <th>Paid</th>
+              <th>Balance</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th style="width: 80px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @sales.each do |sale| %>
+              <tr>
+                <td data-label="Customer">
+                  <strong><%= sale.customer_name %></strong><br>
+                  <small style="color: #64748b;"><%= sale.customer_phone %></small>
+                </td>
+                <td data-label="Product">
+                  <%= sale.product.name %><br>
+                  <small style="color: #64748b;"><%= sale.quantity %> <%= sale.product.unit %></small>
+                </td>
+                <td data-label="Amount" class="positive"><%= number_to_currency(sale.total_amount) %></td>
+                <td data-label="Paid" class="positive"><%= number_to_currency(sale.paid_amount || 0) %></td>
+                <td data-label="Balance" class="negative"><%= number_to_currency(sale.remaining_balance) %></td>
+                <td data-label="Status">
+                  <span class="badge badge-<%= sale.payment_status %>">
+                    <%= sale.payment_status.titleize %>
+                  </span>
+                  <% if sale.partial? %>
+                    <small style="display: block;"><%= sale.payment_percentage %>% paid</small>
+                  <% end %>
+                </td>
+                <td data-label="Date"><%= sale.transaction_date.strftime("%d/%m/%y") %></td>
+                <td data-label="Actions" style="white-space: nowrap;">
+                  <%= link_to "View", sale, class: "btn btn-secondary btn-sm" %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      
+      <% if @sales.empty? %>
+        <div style="text-align: center; padding: 2rem; color: #64748b;">
+          No sales found. <%= link_to "Create your first sale", new_sale_path %>.
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Pagination -->
+<% if @sales.total_entries > 0 %>
+  <div style="margin-top: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div style="font-size: 0.75rem; color: #64748b;">
+        <% if @sales.total_pages > 1 %>
+          <%= @sales.offset + 1 %> - <%= [@sales.offset + @sales.length, @sales.total_entries].min %> of <%= @sales.total_entries %>
+        <% else %>
+          All <%= @sales.total_entries %> transactions
+        <% end %>
+      </div>
+      
+      <% if @sales.total_pages > 1 %>
+        <%= will_paginate @sales, 
+              renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+              previous_label: '←',
+              next_label: '→',
+              class: 'pagination' %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<!-- JavaScript to toggle between mobile and desktop views -->
+<script>
+  function checkScreenSize() {
+    const mobileCards = document.querySelector('.mobile-cards');
+    const desktopTable = document.querySelector('.desktop-table');
+    
+    if (window.innerWidth <= 768) {
+      if (mobileCards) mobileCards.style.display = 'block';
+      if (desktopTable) desktopTable.style.display = 'none';
+    } else {
+      if (mobileCards) mobileCards.style.display = 'none';
+      if (desktopTable) desktopTable.style.display = 'block';
+    }
+  }
+  
+  checkScreenSize();
+  window.addEventListener('resize', checkScreenSize);
+</script>

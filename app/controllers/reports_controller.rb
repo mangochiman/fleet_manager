@@ -1,7 +1,14 @@
 class ReportsController < ApplicationController
   before_action :authenticate_user!
+  before_action :authorize_manager!, except: [:index]
   
   def index
+    # Only managers and above can access reports
+    unless current_user.manager? || current_user.super_admin?
+      redirect_to dashboard_path, alert: 'You are not authorized to access reports.'
+      return
+    end
+    
     # Date range defaults
     @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.current.beginning_of_month
     @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current.end_of_month
@@ -41,6 +48,8 @@ class ReportsController < ApplicationController
   end
   
   def sales_report
+    authorize_manager!
+    
     @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.current.beginning_of_month
     @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current.end_of_month
     
@@ -81,6 +90,8 @@ class ReportsController < ApplicationController
   end
   
   def expenses_report
+    authorize_manager!
+    
     @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.current.beginning_of_month
     @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current.end_of_month
     
@@ -122,6 +133,8 @@ class ReportsController < ApplicationController
   end
   
   def profit_loss_report
+    authorize_manager!
+    
     @start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.current.beginning_of_month
     @end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current.end_of_month
     
@@ -176,6 +189,8 @@ class ReportsController < ApplicationController
   end
   
   def outstanding_report
+    authorize_manager!
+    
     @sales = Sale.outstanding.includes(:user, :vehicle, :product)
                  .order(transaction_date: :asc)
     
