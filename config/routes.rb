@@ -32,6 +32,14 @@ Rails.application.routes.draw do
     end
   end
   
+  # User management (only for super admin)
+  resources :users, except: [:show] do
+    collection do
+      get :edit_password
+      patch :update_password
+    end
+  end
+  
   # Reports
   get "reports", to: "reports#index"
   get "reports/sales_report", to: "reports#sales_report"
@@ -44,8 +52,8 @@ Rails.application.routes.draw do
   get "exports/expenses", to: "exports#expenses"
   get "exports/outstanding", to: "exports#outstanding"
 
-  match "/404", to: "errors#not_found",            via: :all
+  # Error pages (must be at the bottom)
+  match "/404", to: "errors#not_found", via: :all
+  match "/422", to: "errors#unprocessable_entity", via: :all
   match "/500", to: "errors#internal_server_error", via: :all
-  match "/422", to: "errors#unprocessable_entity",  via: :all
-  
 end

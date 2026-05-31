@@ -44,9 +44,23 @@ class ExpensesController < ApplicationController
     @per_page = 100 if @per_page > 100
     @expenses = @expenses.paginate(page: params[:page], per_page: @per_page)
     
-    # Stats
-    @total_expenses = @expenses.sum(:amount)
-    @expenses_by_category = @expenses.group(:category).sum(:amount)
+    # Stats - Fix GROUP BY issue by using separate queries
+    if current_user.driver?
+      # For drivers, stats are based on their filtered expenses
+      @total_expenses = @expenses.sum(:amount)
+      @expenses_by_category = Expense.where(vehicle_id: current_user.vehicle_id)
+                                     .where(expense_date: @expenses.map(&:expense_date))
+                                     .group(:category)
+                                     .sum(:amount)
+    else
+      # For admins, use proper queries without GROUP BY conflicts
+      @total_expenses = @expenses.sum(:amount)
+      
+      # Get expenses by category using a separate query without ordering
+      @expenses_by_category = Expense.where(expense_date: params[:start_date]..params[:end_date])
+                                     .group(:category)
+                                     .sum(:amount)
+    end
     
     # Vehicles for filter (only show vehicles the user has access to)
     if current_user.driver?

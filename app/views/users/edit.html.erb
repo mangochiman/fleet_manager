@@ -1,0 +1,63 @@
+<div class="page-header">
+  <h1>Edit User</h1>
+  <p>Update user information and role</p>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>User Details</h3>
+  </div>
+  <div class="card-body">
+    <%= form_with(model: @user, local: true, class: "form") do |f| %>
+      <% if @user.errors.any? %>
+        <div class="alert alert-danger">
+          <h4><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h4>
+          <ul>
+            <% @user.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      
+      <div class="grid grid-2">
+        <div class="form-group">
+          <%= f.label :name, "Full Name *" %>
+          <%= f.text_field :name, class: "form-control", required: true %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :email, "Email Address *" %>
+          <%= f.email_field :email, class: "form-control", required: true %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :phone, "Phone Number" %>
+          <%= f.telephone_field :phone, class: "form-control", placeholder: "+265XXXXXXXXX" %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :role, "User Role *" %>
+          <%= f.select :role, options_for_select(User::ROLES.map { |k, v| [v.titleize, k] }, @user.role), class: "form-control", required: true %>
+          <small style="color: #64748b;">
+            Driver: Can only create sales and view own data<br>
+            Admin: Full access except reports and user management<br>
+            Manager: Full access including reports<br>
+            Super Admin: Full access including user management
+          </small>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :vehicle_id, "Assigned Vehicle (for Drivers)" %>
+          <%= f.collection_select :vehicle_id, @vehicles, :id, :display_name, { include_blank: "No vehicle assigned" }, class: "form-control" %>
+          <small style="color: #64748b;">Only required for driver role</small>
+        </div>
+      </div>
+      
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <%= f.submit "Update User", class: "btn btn-primary" %>
+        <%= link_to "Cancel", users_path, class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

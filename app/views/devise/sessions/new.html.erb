@@ -62,7 +62,7 @@
 
     .login-wrapper {
       display: flex;
-      max-width: 1200px;
+      max-width: 1300px;
       width: 100%;
       background: white;
       border-radius: 2rem;
@@ -86,7 +86,7 @@
     .brand-side {
       flex: 1;
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      padding: 3rem;
+      padding: 2rem;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -105,12 +105,12 @@
     }
 
     .logo {
-      font-size: 3rem;
+      font-size: 2.5rem;
       margin-bottom: 1rem;
     }
 
     .brand-side h1 {
-      font-size: 2.5rem;
+      font-size: 2rem;
       font-weight: 800;
       color: white;
       margin-bottom: 1rem;
@@ -119,55 +119,55 @@
 
     .brand-side p {
       color: #94a3b8;
-      font-size: 1rem;
+      font-size: 0.875rem;
       line-height: 1.6;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
     }
 
     .features {
       list-style: none;
-      margin-top: 2rem;
+      margin-top: 1rem;
     }
 
     .features li {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
       color: #cbd5e1;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
     }
 
     .features li span {
-      font-size: 1.25rem;
+      font-size: 1rem;
     }
 
     /* Right side - Login Form */
     .form-side {
       flex: 1;
-      padding: 3rem;
+      padding: 2rem;
       background: white;
     }
 
     .form-header {
       text-align: center;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
     }
 
     .form-header h2 {
-      font-size: 1.875rem;
+      font-size: 1.5rem;
       font-weight: 700;
       color: #1e293b;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
     .form-header p {
       color: #64748b;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
     }
 
     .form-group {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     .form-group label {
@@ -175,7 +175,7 @@
       margin-bottom: 0.5rem;
       font-weight: 500;
       color: #1e293b;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
     }
 
     .input-group {
@@ -187,19 +187,17 @@
       left: 1rem;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 1.125rem;
+      font-size: 1rem;
     }
 
     .form-control {
       width: 100%;
-      padding: 0.875rem 1rem 0.875rem 2.75rem;
+      padding: 0.7rem 1rem 0.7rem 2.5rem;
       border: 1px solid #e2e8f0;
-      border-radius: 0.75rem;
-      font-size: 0.875rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
       transition: all 0.2s;
       background: #f8fafc;
-      -webkit-appearance: none;
-      appearance: none;
     }
 
     .form-control:focus {
@@ -213,7 +211,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
       flex-wrap: wrap;
       gap: 0.5rem;
     }
@@ -223,20 +221,20 @@
       align-items: center;
       gap: 0.5rem;
       cursor: pointer;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       color: #64748b;
     }
 
     .checkbox-label input {
-      width: 1rem;
-      height: 1rem;
+      width: 0.9rem;
+      height: 0.9rem;
       cursor: pointer;
     }
 
     .forgot-link {
       color: #667eea;
       text-decoration: none;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       font-weight: 500;
     }
 
@@ -246,12 +244,12 @@
 
     .btn-login {
       width: 100%;
-      padding: 0.875rem;
+      padding: 0.7rem;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      border-radius: 0.75rem;
-      font-size: 0.875rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
@@ -268,36 +266,76 @@
       }
     }
 
+    /* Demo Credentials Section */
     .demo-credentials {
-      margin-top: 2rem;
-      padding: 1rem;
+      margin-top: 1.5rem;
       background: #f1f5f9;
       border-radius: 0.75rem;
+      overflow: hidden;
+    }
+
+    .demo-header {
+      background: #e2e8f0;
+      padding: 0.75rem;
       text-align: center;
-    }
-
-    .demo-credentials p {
-      font-size: 0.75rem;
-      color: #64748b;
-      margin-bottom: 0.5rem;
-    }
-
-    .demo-credentials code {
-      display: inline-block;
-      background: white;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.375rem;
-      font-size: 0.75rem;
+      font-weight: 600;
+      font-size: 0.8rem;
       color: #1e293b;
-      margin: 0.25rem;
     }
+
+    .credential-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.75rem;
+    }
+
+    .credential-row:last-child {
+      border-bottom: none;
+    }
+
+    .user-role {
+      font-weight: 700;
+      color: #667eea;
+      min-width: 90px;
+    }
+
+    .user-email {
+      font-family: monospace;
+      color: #1e293b;
+      flex: 1;
+      margin: 0 0.5rem;
+    }
+
+    .user-password {
+      font-family: monospace;
+      color: #64748b;
+      background: white;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+    }
+
+    .badge-role {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    .badge-super-admin { background: #8b5cf6; color: white; }
+    .badge-manager { background: #3b82f6; color: white; }
+    .badge-admin { background: #10b981; color: white; }
+    .badge-driver { background: #f59e0b; color: white; }
 
     /* Alert messages */
     .alert {
-      padding: 0.875rem;
-      border-radius: 0.75rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.875rem;
+      padding: 0.7rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.8rem;
     }
 
     .alert-danger {
@@ -306,82 +344,48 @@
       border: 1px solid #fecaca;
     }
 
-    .alert-success {
-      background: #d1fae5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
-    }
-
     /* Mobile Responsive */
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
       .login-wrapper {
         flex-direction: column;
         max-width: 95%;
-        border-radius: 1.5rem;
       }
       
       .brand-side {
-        padding: 2rem;
+        padding: 1.5rem;
         text-align: center;
-      }
-      
-      .brand-side h1 {
-        font-size: 1.75rem;
-      }
-      
-      .brand-side p {
-        font-size: 0.875rem;
       }
       
       .features {
         text-align: left;
-        margin-top: 1rem;
-      }
-      
-      .features li {
-        font-size: 0.75rem;
       }
       
       .form-side {
-        padding: 2rem 1.5rem;
+        padding: 1.5rem;
       }
       
-      .form-header h2 {
-        font-size: 1.5rem;
+      .credential-row {
+        flex-wrap: wrap;
+        gap: 0.5rem;
       }
       
-      .logo {
-        font-size: 2.5rem;
-      }
-      
-      .demo-credentials code {
-        display: inline-block;
-        margin: 0.25rem;
-        font-size: 0.7rem;
+      .user-role {
+        min-width: 70px;
       }
     }
 
     @media (max-width: 480px) {
-      .brand-side {
-        padding: 1.5rem;
-      }
-      
       .form-side {
-        padding: 1.5rem;
+        padding: 1rem;
       }
       
-      .form-header h2 {
-        font-size: 1.25rem;
-      }
-      
-      .demo-credentials code {
-        display: block;
-        margin: 0.5rem 0;
-      }
-      
-      .checkbox-group {
+      .credential-row {
         flex-direction: column;
         align-items: flex-start;
+      }
+      
+      .user-email {
+        margin: 0.25rem 0;
       }
     }
   </style>
@@ -422,7 +426,7 @@
             <%= f.label :email %>
             <div class="input-group">
               <span class="input-icon">📧</span>
-              <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "admin@fleet.com", required: true %>
+              <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "Select an account from below", required: true %>
             </div>
           </div>
           
@@ -445,12 +449,47 @@
           <%= f.submit "Sign in", class: "btn-login" %>
         <% end %>
         
+        <!-- Demo Credentials with All Accounts -->
         <div class="demo-credentials">
-          <p>📱 Demo Credentials (for testing)</p>
-          <div>
-            <code>admin@fleet.com</code> 
-            <code style="margin-left: 0;">password123</code>
+          <div class="demo-header">
+            📋 Test Accounts (All passwords: <code>password123</code>)
           </div>
+          
+          <div class="credential-row">
+            <span class="user-role">
+              <span class="badge-role badge-super-admin">Super Admin</span>
+            </span>
+            <span class="user-email">admin@fleet.com</span>
+            <span class="user-password">•••••••••</span>
+          </div>
+          
+          <div class="credential-row">
+            <span class="user-role">
+              <span class="badge-role badge-manager">Manager</span>
+            </span>
+            <span class="user-email">manager@fleet.com</span>
+            <span class="user-password">•••••••••</span>
+          </div>
+          
+          <div class="credential-row">
+            <span class="user-role">
+              <span class="badge-role badge-admin">Admin</span>
+            </span>
+            <span class="user-email">admin@fleet.com</span>
+            <span class="user-password">•••••••••</span>
+          </div>
+          
+          <div class="credential-row">
+            <span class="user-role">
+              <span class="badge-role badge-driver">Driver</span>
+            </span>
+            <span class="user-email">driver@fleet.com</span>
+            <span class="user-password">•••••••••</span>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 1rem; font-size: 0.7rem; color: #94a3b8;">
+          <p>🔐 Default password for all accounts: <strong>password123</strong></p>
         </div>
       </div>
     </div>
