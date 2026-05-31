@@ -1,204 +1,712 @@
-<div class="page-header">
-  <h1>Sales Transactions</h1>
-  <p>Manage all customer sales and deliveries</p>
-</div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
-<!-- Compact Summary Bar - Responsive Grid -->
-<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 1.5rem;">
-  <div class="stat-card" style="padding: 0.75rem;">
-    <div style="font-size: 0.7rem; color: #64748b;">Total Revenue</div>
-    <div style="font-size: 1rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@total_sales) %></div>
-  </div>
-  <div class="stat-card" style="padding: 0.75rem;">
-    <div style="font-size: 0.7rem; color: #64748b;">Outstanding</div>
-    <div style="font-size: 1rem; font-weight: 700; color: #f59e0b;"><%= number_to_currency(@outstanding_sales) %></div>
-  </div>
-  <div class="stat-card" style="padding: 0.75rem;">
-    <div style="font-size: 0.7rem; color: #64748b;">Partial</div>
-    <div style="font-size: 1rem; font-weight: 700; color: #f59e0b;"><%= number_to_currency(@partial_sales) %></div>
-  </div>
-  <div class="stat-card" style="padding: 0.75rem;">
-    <div style="font-size: 0.7rem; color: #64748b;">Collected</div>
-    <div style="font-size: 1rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@paid_sales) %></div>
-  </div>
-  <div class="stat-card" style="padding: 0.75rem;">
-    <div style="font-size: 0.7rem; color: #64748b;">Transactions</div>
-    <div style="font-size: 1rem; font-weight: 700; color: #1e293b;"><%= @sales.total_entries %></div>
-  </div>
-</div>
+  :root {
+    --ink:     #0f1117;
+    --ink-2:   #2a2d38;
+    --ink-3:   #5c6070;
+    --paper:   #f7f6f2;
+    --surface: #ffffff;
+    --border:  #e4e2da;
+    --green:   #1a9e6e;
+    --green-l: #e8f7f2;
+    --red:     #d63d2f;
+    --red-l:   #fdf0ee;
+    --amber:   #c07b1a;
+    --amber-l: #fef6e7;
+    --blue:    #2563eb;
+    --blue-l:  #eff4ff;
+  }
 
-<!-- Search and Filter Bar - Responsive -->
-<div style="margin-bottom: 1.5rem;">
-  <%= form_tag sales_path, method: :get, style: "display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;" do %>
-    <%= text_field_tag :search, params[:search], placeholder: "Search by customer or product...", class: "form-control", style: "flex: 1; min-width: 150px;" %>
-    <%= select_tag :status, options_for_select([["All", ""], ["Outstanding", "outstanding"], ["Partial", "partial"], ["Paid", "paid"], ["Banked", "banked"]], params[:status]), class: "form-control", style: "width: auto; min-width: 100px;" %>
-    
-    <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <span style="font-size: 0.75rem; color: #64748b;">Show:</span>
-      <%= select_tag :per_page, options_for_select([10, 20, 50, 100], params[:per_page] || 20), class: "form-control", style: "width: auto; min-width: 65px;", onchange: "this.form.submit()" %>
+  .sl-wrap {
+    font-family: 'Inconsolata', monospace;
+    background: var(--paper);
+    min-height: 100vh;
+    padding: 2rem 2rem 3rem;
+    color: var(--ink);
+  }
+
+  /* ── Header ── */
+  .sl-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1.5px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .sl-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.3rem;
+  }
+
+  .sl-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .sl-title span { color: var(--green); }
+
+  .sl-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ── Buttons ── */
+  .sl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.9rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .sl-btn-primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  .sl-btn-primary:hover {
+    background: var(--ink-2);
+    box-shadow: 2px 2px 0 var(--green);
+    transform: translate(-1px,-1px);
+    color: #fff;
+  }
+
+  .sl-btn-ghost {
+    background: transparent;
+    color: var(--ink-3);
+    border-color: var(--border);
+  }
+
+  .sl-btn-ghost:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+    background: var(--surface);
+  }
+
+  /* ── Stat Cards ── */
+  .sl-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sl-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.9rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: statIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .sl-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+
+  .sl-stat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .sl-stat.green::before { background: var(--green); }
+  .sl-stat.amber::before { background: var(--amber); }
+  .sl-stat.blue::before  { background: var(--blue); }
+  .sl-stat.ink::before   { background: var(--ink-2); }
+
+  .sl-stat-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.3rem;
+  }
+
+  .sl-stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .sl-stat.green .sl-stat-value { color: var(--green); }
+  .sl-stat.amber .sl-stat-value { color: var(--amber); }
+  .sl-stat.blue  .sl-stat-value { color: var(--blue); }
+  .sl-stat.ink   .sl-stat-value { color: var(--ink); }
+
+  .sl-stat:nth-child(1) { animation-delay: 0.04s; }
+  .sl-stat:nth-child(2) { animation-delay: 0.08s; }
+  .sl-stat:nth-child(3) { animation-delay: 0.12s; }
+  .sl-stat:nth-child(4) { animation-delay: 0.16s; }
+  .sl-stat:nth-child(5) { animation-delay: 0.20s; }
+
+  @keyframes statIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Filter bar ── */
+  .sl-filters {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .sl-input {
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .sl-input:focus {
+    border-color: var(--ink-2);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(15,17,23,0.07);
+  }
+
+  .sl-input-search { flex: 1; min-width: 180px; }
+  .sl-input-select { min-width: 120px; }
+
+  .sl-filter-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .sl-filter-sep {
+    flex: 1;
+  }
+
+  /* ── Panel ── */
+  .sl-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .sl-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .sl-panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  /* ── Table ── */
+  .sl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+
+  .sl-table thead tr {
+    background: var(--paper);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .sl-table th {
+    text-align: left;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .sl-table td {
+    padding: 0.7rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .sl-table tbody tr:last-child td { border-bottom: none; }
+  .sl-table tbody tr { transition: background 0.12s; }
+  .sl-table tbody tr:hover { background: var(--paper); }
+
+  .sl-customer-name {
+    font-weight: 600;
+    color: var(--ink);
+    display: block;
+  }
+
+  .sl-customer-phone {
+    font-size: 0.68rem;
+    color: var(--ink-3);
+    display: block;
+    margin-top: 1px;
+  }
+
+  .sl-product-name { display: block; color: var(--ink); }
+  .sl-product-qty  { font-size: 0.68rem; color: var(--ink-3); display: block; margin-top: 1px; }
+
+  .text-green { color: var(--green); font-weight: 500; }
+  .text-red   { color: var(--red);   font-weight: 500; }
+
+  /* ── Progress ── */
+  .sl-progress {
+    height: 3px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: 4px;
+    min-width: 60px;
+  }
+
+  .sl-progress-fill {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 99px;
+  }
+
+  .sl-pct {
+    font-size: 0.6rem;
+    color: var(--ink-3);
+    margin-top: 2px;
+    display: block;
+  }
+
+  /* ── Badges ── */
+  .sl-badge {
+    display: inline-block;
+    padding: 0.18rem 0.5rem;
+    border-radius: 2px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .sl-badge.paid        { background: var(--green-l); color: var(--green); }
+  .sl-badge.outstanding { background: var(--amber-l); color: var(--amber); }
+  .sl-badge.partial     { background: var(--blue-l);  color: var(--blue); }
+  .sl-badge.banked      { background: #f0fdf4;         color: #15803d; }
+  .sl-badge.overdue     { background: var(--red-l);   color: var(--red); }
+
+  /* ── Action buttons ── */
+  .sl-action-group { display: flex; gap: 0.35rem; }
+
+  .sl-act {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.6rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--ink-3);
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+
+  .sl-act:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
+
+  .sl-act.primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  .sl-act.primary:hover { background: var(--ink-2); color: #fff; }
+
+  /* ── Empty state ── */
+  .sl-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ink-3);
+  }
+
+  .sl-empty-icon {
+    font-size: 2.5rem;
+    opacity: 0.3;
+    margin-bottom: 0.75rem;
+  }
+
+  .sl-empty p {
+    font-size: 0.8rem;
+    margin: 0 0 0.5rem;
+  }
+
+  /* ── Pagination ── */
+  .sl-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.85rem 1.1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--ink-3);
+  }
+
+  .sl-pagination .pagination {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .sl-pagination .pagination li a,
+  .sl-pagination .pagination li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 0.4rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    text-decoration: none;
+    color: var(--ink-3);
+    transition: all 0.12s;
+  }
+
+  .sl-pagination .pagination li a:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
+  .sl-pagination .pagination li.active span { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .sl-pagination .pagination li.disabled span { opacity: 0.4; }
+
+  /* ── Mobile cards ── */
+  .sl-mobile { display: none; }
+
+  .sl-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    animation: statIn 0.35s ease both;
+  }
+
+  .sl-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    background: var(--paper);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sl-card-tid {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-2);
+    letter-spacing: 0.04em;
+  }
+
+  .sl-card-body {
+    padding: 0.85rem 1rem;
+  }
+
+  .sl-card-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .sl-card-key {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    padding-top: 1px;
+  }
+
+  .sl-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .sl-card-actions .sl-act { flex: 1; justify-content: center; }
+
+  @media (max-width: 768px) {
+    .sl-wrap      { padding: 1rem; }
+    .sl-title     { font-size: 1.5rem; }
+    .sl-desktop   { display: none; }
+    .sl-mobile    { display: block; }
+    .sl-header-actions .sl-btn span { display: none; }
+  }
+</style>
+
+<div class="sl-wrap">
+
+  <!-- Header -->
+  <div class="sl-header">
+    <div>
+      <p class="sl-eyebrow">Fleet Management</p>
+      <h1 class="sl-title">Sales <span>Transactions</span></h1>
     </div>
-    
-    <%= submit_tag "Filter", class: "btn btn-primary btn-sm" %>
-    <%= link_to "Clear", sales_path, class: "btn btn-secondary btn-sm" %>
-  <% end %>
-</div>
-
-<!-- Mobile-Responsive Cards View (shows on mobile, hides on desktop) -->
-<div class="mobile-cards" style="display: none;">
-  <% @sales.each do |sale| %>
-    <div class="card" style="margin-bottom: 1rem;">
-      <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-        <strong><%= sale.transaction_id %></strong>
-        <span class="badge badge-<%= sale.payment_status %>" style="background: white; color: #1e293b;"><%= sale.payment_status.titleize %></span>
-      </div>
-      <div class="card-body" style="padding: 1rem;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
-          <div style="font-size: 0.7rem; color: #64748b;">Customer:</div>
-          <div style="font-size: 0.8rem;"><%= sale.customer_name %><br><small><%= sale.customer_phone %></small></div>
-          
-          <div style="font-size: 0.7rem; color: #64748b;">Product:</div>
-          <div style="font-size: 0.8rem;"><%= sale.product.name %><br><small><%= sale.quantity %> <%= sale.product.unit %></small></div>
-          
-          <div style="font-size: 0.7rem; color: #64748b;">Amount:</div>
-          <div style="font-size: 0.8rem; color: #10b981;"><%= number_to_currency(sale.total_amount) %></div>
-          
-          <div style="font-size: 0.7rem; color: #64748b;">Paid:</div>
-          <div style="font-size: 0.8rem;"><%= number_to_currency(sale.paid_amount || 0) %></div>
-          
-          <div style="font-size: 0.7rem; color: #64748b;">Balance:</div>
-          <div style="font-size: 0.8rem; color: #ef4444;"><%= number_to_currency(sale.remaining_balance) %></div>
-          
-          <div style="font-size: 0.7rem; color: #64748b;">Date:</div>
-          <div style="font-size: 0.8rem;"><%= sale.transaction_date.strftime("%d/%m/%y") %></div>
-        </div>
-        
-        <% if sale.partial? %>
-          <div style="background: #e2e8f0; border-radius: 0.25rem; overflow: hidden; margin: 0.5rem 0;">
-            <div style="width: <%= sale.payment_percentage %>%; height: 4px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
-          </div>
-          <div style="font-size: 0.65rem; text-align: center; color: #64748b;"><%= sale.payment_percentage %>% Paid</div>
-        <% end %>
-        
-        <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
-          <%= link_to "View Details", sale, class: "btn btn-secondary btn-sm", style: "flex: 1; text-align: center;" %>
-          <% if sale.outstanding? || sale.partial? %>
-            <%= link_to "Record Payment", record_payment_form_sale_path(sale), class: "btn btn-primary btn-sm", style: "flex: 1; text-align: center;" %>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  <% end %>
-</div>
-
-<!-- Desktop Table View (ID and Date removed) -->
-<div class="desktop-table" style="overflow-x: auto;">
-  <div class="card">
-    <div class="card-header">
-      <h3>All Sales</h3>
-      <div style="display: flex; gap: 0.5rem;">
-        <%= link_to "📊 Export Excel", exports_sales_path(search: params[:search], status: params[:status], format: :xlsx), class: "btn btn-secondary btn-sm" %>
-        <%= link_to "📄 Export CSV", exports_sales_path(search: params[:search], status: params[:status], format: :csv), class: "btn btn-secondary btn-sm" %>
-        <%= link_to "+ New Sale", new_sale_path, class: "btn btn-primary btn-sm" %>
-      </div>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th>Product</th>
-              <th>Amount</th>
-              <th>Paid</th>
-              <th>Balance</th>
-              <th>Status</th>
-              <th style="width: 100px;">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @sales.each do |sale| %>
-              <tr>
-                <td data-label="Customer">
-                  <strong><%= sale.customer_name %></strong><br>
-                  <small style="color: #64748b;"><%= sale.customer_phone %></small>
-                </td>
-                <td data-label="Product">
-                  <%= sale.product.name %><br>
-                  <small style="color: #64748b;"><%= sale.quantity %> <%= sale.product.unit %></small>
-                </td>
-                <td data-label="Amount" class="positive"><%= number_to_currency(sale.total_amount) %></td>
-                <td data-label="Paid" class="positive"><%= number_to_currency(sale.paid_amount || 0) %></td>
-                <td data-label="Balance" class="negative"><%= number_to_currency(sale.remaining_balance) %></td>
-                <td data-label="Status">
-                  <span class="badge badge-<%= sale.payment_status %>">
-                    <%= sale.payment_status.titleize %>
-                  </span>
-                  <% if sale.partial? %>
-                    <small style="display: block;"><%= sale.payment_percentage %>% paid</small>
-                  <% end %>
-                </td>
-                <td data-label="Actions" style="white-space: nowrap;">
-                  <%= link_to "View", sale, class: "btn btn-secondary btn-sm" %>
-                  <% if sale.outstanding? || sale.partial? %>
-                    <%= link_to "Pay", record_payment_form_sale_path(sale), class: "btn btn-primary btn-sm" %>
-                  <% end %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-      
-      <% if @sales.empty? %>
-        <div style="text-align: center; padding: 2rem; color: #64748b;">
-          No sales found. <%= link_to "Create your first sale", new_sale_path %>.
-        </div>
+    <div class="sl-header-actions">
+      <%= link_to exports_sales_path(search: params[:search], status: params[:status], format: :xlsx), class: "sl-btn sl-btn-ghost" do %>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span>Excel</span>
+      <% end %>
+      <%= link_to exports_sales_path(search: params[:search], status: params[:status], format: :csv), class: "sl-btn sl-btn-ghost" do %>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span>CSV</span>
+      <% end %>
+      <%= link_to new_sale_path, class: "sl-btn sl-btn-primary" do %>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        New Sale
       <% end %>
     </div>
   </div>
-</div>
 
-<!-- Pagination -->
-<% if @sales.total_entries > 0 %>
-  <div style="margin-top: 1.5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div style="font-size: 0.75rem; color: #64748b;">
+  <!-- Stats -->
+  <div class="sl-stats">
+    <div class="sl-stat green">
+      <div class="sl-stat-label">Total Revenue</div>
+      <div class="sl-stat-value"><%= number_to_currency(@total_sales) %></div>
+    </div>
+    <div class="sl-stat amber">
+      <div class="sl-stat-label">Outstanding</div>
+      <div class="sl-stat-value"><%= number_to_currency(@outstanding_sales) %></div>
+    </div>
+    <div class="sl-stat blue">
+      <div class="sl-stat-label">Partial</div>
+      <div class="sl-stat-value"><%= number_to_currency(@partial_sales) %></div>
+    </div>
+    <div class="sl-stat green">
+      <div class="sl-stat-label">Collected</div>
+      <div class="sl-stat-value"><%= number_to_currency(@paid_sales) %></div>
+    </div>
+    <div class="sl-stat ink">
+      <div class="sl-stat-label">Transactions</div>
+      <div class="sl-stat-value"><%= @sales.total_entries %></div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <%= form_tag sales_path, method: :get, class: "sl-filters" do %>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ink-3); flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <%= text_field_tag :search, params[:search], placeholder: "Search customer or product…", class: "sl-input sl-input-search" %>
+    <%= select_tag :status, options_for_select([["All Status", ""], ["Outstanding", "outstanding"], ["Partial", "partial"], ["Paid", "paid"], ["Banked", "banked"]], params[:status]), class: "sl-input sl-input-select" %>
+    <span class="sl-filter-label">Show</span>
+    <%= select_tag :per_page, options_for_select([10, 20, 50, 100], params[:per_page] || 20), class: "sl-input", style: "width: 70px;", onchange: "this.form.submit()" %>
+    <span class="sl-filter-sep"></span>
+    <%= submit_tag "Filter", class: "sl-btn sl-btn-primary" %>
+    <%= link_to "Clear", sales_path, class: "sl-btn sl-btn-ghost" %>
+  <% end %>
+
+  <!-- ── DESKTOP TABLE ── -->
+  <div class="sl-panel sl-desktop">
+    <div class="sl-panel-head">
+      <h3 class="sl-panel-title">All Sales</h3>
+    </div>
+
+    <% if @sales.empty? %>
+      <div class="sl-empty">
+        <div class="sl-empty-icon">🧾</div>
+        <p>No sales found.</p>
+        <%= link_to "Create your first sale →", new_sale_path, class: "sl-btn sl-btn-primary" %>
+      </div>
+    <% else %>
+      <table class="sl-table">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Amount</th>
+            <th>Paid</th>
+            <th>Balance</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @sales.each do |sale| %>
+            <tr>
+              <td>
+                <span class="sl-customer-name"><%= sale.customer_name %></span>
+                <span class="sl-customer-phone"><%= sale.customer_phone %></span>
+              </td>
+              <td>
+                <span class="sl-product-name"><%= sale.product.name %></span>
+                <span class="sl-product-qty"><%= sale.quantity %> <%= sale.product.unit %></span>
+              </td>
+              <td class="text-green"><%= number_to_currency(sale.total_amount) %></td>
+              <td class="text-green"><%= number_to_currency(sale.paid_amount || 0) %></td>
+              <td class="<%= sale.remaining_balance > 0 ? 'text-red' : 'text-green' %>">
+                <%= number_to_currency(sale.remaining_balance) %>
+              </td>
+              <td>
+                <span class="sl-badge <%= sale.payment_status %>"><%= sale.payment_status.titleize %></span>
+                <% if sale.partial? %>
+                  <div class="sl-progress">
+                    <div class="sl-progress-fill" style="width: <%= sale.payment_percentage %>%;"></div>
+                  </div>
+                  <span class="sl-pct"><%= sale.payment_percentage %>% paid</span>
+                <% end %>
+              </td>
+              <td>
+                <div class="sl-action-group">
+                  <%= link_to "View", sale, class: "sl-act" %>
+                  <% if sale.outstanding? || sale.partial? %>
+                    <%= link_to "Pay", record_payment_form_sale_path(sale), class: "sl-act primary" %>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <% if @sales.total_entries > 0 %>
+      <div class="sl-pagination">
+        <span>
+          <% if @sales.total_pages > 1 %>
+            <%= @sales.offset + 1 %>–<%= [@sales.offset + @sales.length, @sales.total_entries].min %> of <%= @sales.total_entries %> transactions
+          <% else %>
+            All <%= @sales.total_entries %> transactions
+          <% end %>
+        </span>
         <% if @sales.total_pages > 1 %>
-          <%= @sales.offset + 1 %> - <%= [@sales.offset + @sales.length, @sales.total_entries].min %> of <%= @sales.total_entries %>
-        <% else %>
-          All <%= @sales.total_entries %> transactions
+          <%= will_paginate @sales,
+                renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+                previous_label: '←',
+                next_label: '→',
+                class: 'pagination' %>
         <% end %>
       </div>
-      
-      <% if @sales.total_pages > 1 %>
-        <%= will_paginate @sales, 
+    <% end %>
+  </div>
+
+  <!-- ── MOBILE CARDS ── -->
+  <div class="sl-mobile">
+    <% @sales.each_with_index do |sale, i| %>
+      <div class="sl-card" style="animation-delay: <%= i * 0.04 %>s;">
+        <div class="sl-card-head">
+          <span class="sl-card-tid"><%= sale.transaction_id %></span>
+          <span class="sl-badge <%= sale.payment_status %>"><%= sale.payment_status.titleize %></span>
+        </div>
+        <div class="sl-card-body">
+          <div class="sl-card-grid">
+            <span class="sl-card-key">Customer</span>
+            <span><%= sale.customer_name %><br><small style="color:var(--ink-3)"><%= sale.customer_phone %></small></span>
+
+            <span class="sl-card-key">Product</span>
+            <span><%= sale.product.name %> &mdash; <small><%= sale.quantity %> <%= sale.product.unit %></small></span>
+
+            <span class="sl-card-key">Amount</span>
+            <span class="text-green"><%= number_to_currency(sale.total_amount) %></span>
+
+            <span class="sl-card-key">Paid</span>
+            <span><%= number_to_currency(sale.paid_amount || 0) %></span>
+
+            <span class="sl-card-key">Balance</span>
+            <span class="<%= sale.remaining_balance > 0 ? 'text-red' : 'text-green' %>"><%= number_to_currency(sale.remaining_balance) %></span>
+
+            <span class="sl-card-key">Date</span>
+            <span><%= sale.transaction_date.strftime("%-d %b %Y") %></span>
+          </div>
+
+          <% if sale.partial? %>
+            <div class="sl-progress" style="margin-bottom: 0.35rem;">
+              <div class="sl-progress-fill" style="width: <%= sale.payment_percentage %>%;"></div>
+            </div>
+            <span class="sl-pct" style="text-align:center; display:block;"><%= sale.payment_percentage %>% paid</span>
+          <% end %>
+
+          <div class="sl-card-actions">
+            <%= link_to "View Details", sale, class: "sl-act" %>
+            <% if sale.outstanding? || sale.partial? %>
+              <%= link_to "Record Payment", record_payment_form_sale_path(sale), class: "sl-act primary" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @sales.empty? %>
+      <div class="sl-empty">
+        <div class="sl-empty-icon">🧾</div>
+        <p>No sales found.</p>
+        <%= link_to "Create your first sale →", new_sale_path, class: "sl-btn sl-btn-primary" %>
+      </div>
+    <% end %>
+
+    <% if @sales.total_entries > 0 && @sales.total_pages > 1 %>
+      <div style="padding: 0.5rem 0;">
+        <%= will_paginate @sales,
               renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
               previous_label: '←',
               next_label: '→',
               class: 'pagination' %>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   </div>
-<% end %>
 
-<!-- JavaScript to toggle between mobile and desktop views -->
-<script>
-  function checkScreenSize() {
-    const mobileCards = document.querySelector('.mobile-cards');
-    const desktopTable = document.querySelector('.desktop-table');
-    
-    if (window.innerWidth <= 768) {
-      if (mobileCards) mobileCards.style.display = 'block';
-      if (desktopTable) desktopTable.style.display = 'none';
-    } else {
-      if (mobileCards) mobileCards.style.display = 'none';
-      if (desktopTable) desktopTable.style.display = 'block';
-    }
-  }
-  
-  // Check on load
-  checkScreenSize();
-  
-  // Check on resize
-  window.addEventListener('resize', checkScreenSize);
-</script>
+</div>

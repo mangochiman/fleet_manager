@@ -1,68 +1,585 @@
-<div class="page-header">
-  <h1>Expenses</h1>
-  <p>Track and manage all vehicle expenses</p>
-</div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
-<!-- Compact Summary Bar -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #ef4444;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Total Expenses</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= number_to_currency(@total_expenses) %></div>
-      </div>
-      <div style="font-size: 1.5rem;">💸</div>
-    </div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #f59e0b;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Total Transactions</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @expenses.total_entries %></div>
-      </div>
-      <div style="font-size: 1.5rem;">📋</div>
-    </div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Active Vehicles</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @vehicles.count %></div>
-      </div>
-      <div style="font-size: 1.5rem;">🚛</div>
-    </div>
-  </div>
-</div>
+  :root {
+    --ink:     #0f1117;
+    --ink-2:   #2a2d38;
+    --ink-3:   #5c6070;
+    --paper:   #f7f6f2;
+    --surface: #ffffff;
+    --border:  #e4e2da;
+    --green:   #1a9e6e;
+    --green-l: #e8f7f2;
+    --red:     #d63d2f;
+    --red-l:   #fdf0ee;
+    --amber:   #c07b1a;
+    --amber-l: #fef6e7;
+    --blue:    #2563eb;
+    --blue-l:  #eff4ff;
+  }
 
-<!-- Search and Filter Bar -->
-<div style="margin-bottom: 1.5rem;">
-  <%= form_tag expenses_path, method: :get, style: "display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;" do %>
-    <%= select_tag :vehicle_id, options_for_select([["All Vehicles", ""]] + @vehicles.map { |v| [v.display_name, v.id] }, params[:vehicle_id]), class: "form-control", style: "width: auto; min-width: 150px;" %>
-    <%= select_tag :category, options_for_select([["All Categories", ""]] + Expense::CATEGORIES.map { |k, v| [v, k] }, params[:category]), class: "form-control", style: "width: auto; min-width: 130px;" %>
-    <%= date_field_tag :start_date, params[:start_date], class: "form-control", placeholder: "From", style: "width: auto;" %>
-    <%= date_field_tag :end_date, params[:end_date], class: "form-control", placeholder: "To", style: "width: auto;" %>
-    
-    <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <span style="font-size: 0.75rem; color: #64748b;">Show:</span>
-      <%= select_tag :per_page, options_for_select([10, 20, 50, 100], params[:per_page] || 20), class: "form-control", style: "width: auto; min-width: 65px;", onchange: "this.form.submit()" %>
+  .ex-wrap {
+    font-family: 'Inconsolata', monospace;
+    background: var(--paper);
+    min-height: 100vh;
+    padding: 2rem 2rem 3rem;
+    color: var(--ink);
+  }
+
+  /* ── Header ── */
+  .ex-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1.5px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .ex-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.3rem;
+  }
+
+  .ex-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .ex-title span { color: var(--red); }
+
+  .ex-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ── Buttons ── */
+  .ex-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.9rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .ex-btn-primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  .ex-btn-primary:hover {
+    background: var(--ink-2);
+    box-shadow: 2px 2px 0 var(--red);
+    transform: translate(-1px, -1px);
+    color: #fff;
+  }
+
+  .ex-btn-ghost {
+    background: transparent;
+    color: var(--ink-3);
+    border-color: var(--border);
+  }
+
+  .ex-btn-ghost:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+    background: var(--surface);
+  }
+
+  .ex-btn-danger {
+    background: transparent;
+    color: var(--red);
+    border-color: #f5cfc4;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.12s;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .ex-btn-danger:hover {
+    background: var(--red-l);
+    border-color: var(--red);
+  }
+
+  /* ── Stat Cards ── */
+  .ex-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ex-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.9rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: statIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .ex-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+
+  .ex-stat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .ex-stat.red::before   { background: var(--red); }
+  .ex-stat.amber::before { background: var(--amber); }
+  .ex-stat.green::before { background: var(--green); }
+
+  .ex-stat-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.3rem;
+  }
+
+  .ex-stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .ex-stat.red   .ex-stat-value { color: var(--red); }
+  .ex-stat.amber .ex-stat-value { color: var(--amber); }
+  .ex-stat.green .ex-stat-value { color: var(--green); }
+
+  .ex-stat-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.4rem;
+    opacity: 0.15;
+  }
+
+  .ex-stat:nth-child(1) { animation-delay: 0.04s; }
+  .ex-stat:nth-child(2) { animation-delay: 0.08s; }
+  .ex-stat:nth-child(3) { animation-delay: 0.12s; }
+
+  @keyframes statIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Filter bar ── */
+  .ex-filters {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .ex-input {
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .ex-input:focus {
+    border-color: var(--ink-2);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(15,17,23,0.07);
+  }
+
+  .ex-filter-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .ex-filter-sep { flex: 1; }
+
+  /* ── Panel ── */
+  .ex-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .ex-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ex-panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  /* ── Table ── */
+  .ex-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+
+  .ex-table thead tr {
+    background: var(--paper);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .ex-table th {
+    text-align: left;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .ex-table td {
+    padding: 0.7rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .ex-table tbody tr:last-child td { border-bottom: none; }
+  .ex-table tbody tr { transition: background 0.12s; }
+  .ex-table tbody tr:hover { background: var(--paper); }
+
+  /* ── Category badge ── */
+  .ex-cat {
+    display: inline-block;
+    padding: 0.18rem 0.5rem;
+    border-radius: 2px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    color: var(--ink-2);
+  }
+
+  /* ── Receipt link ── */
+  .ex-receipt-link {
+    font-size: 0.68rem;
+    color: var(--blue);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: opacity 0.15s;
+  }
+
+  .ex-receipt-link:hover { opacity: 0.7; }
+  .ex-receipt-none { color: var(--ink-3); font-size: 0.78rem; }
+
+  /* ── Vehicle tag ── */
+  .ex-vehicle {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+
+  .ex-date {
+    font-size: 0.72rem;
+    color: var(--ink-2);
+    letter-spacing: 0.02em;
+  }
+
+  .ex-desc {
+    color: var(--ink-3);
+    font-size: 0.72rem;
+    max-width: 200px;
+  }
+
+  .ex-amount {
+    font-weight: 600;
+    color: var(--red);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+  }
+
+  .ex-recorded {
+    font-size: 0.7rem;
+    color: var(--ink-3);
+  }
+
+  /* ── Action group ── */
+  .ex-actions { display: flex; gap: 0.35rem; align-items: center; }
+
+  .ex-act {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.6rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--ink-3);
+    background: transparent;
+    transition: all 0.12s;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .ex-act:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
+
+  .ex-act.danger {
+    color: var(--red);
+    border-color: #f5cfc4;
+  }
+
+  .ex-act.danger:hover { background: var(--red-l); border-color: var(--red); }
+
+  /* ── Empty state ── */
+  .ex-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ink-3);
+  }
+
+  .ex-empty-icon { font-size: 2.5rem; opacity: 0.3; margin-bottom: 0.75rem; }
+  .ex-empty p { font-size: 0.8rem; margin: 0 0 0.75rem; }
+
+  /* ── Pagination ── */
+  .ex-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.85rem 1.1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--ink-3);
+  }
+
+  .ex-pagination .pagination {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ex-pagination .pagination li a,
+  .ex-pagination .pagination li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 0.4rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    text-decoration: none;
+    color: var(--ink-3);
+    transition: all 0.12s;
+  }
+
+  .ex-pagination .pagination li a:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
+  .ex-pagination .pagination li.active span { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .ex-pagination .pagination li.disabled span { opacity: 0.4; }
+
+  /* ── Mobile cards ── */
+  .ex-mobile { display: none; }
+
+  .ex-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    animation: statIn 0.35s ease both;
+  }
+
+  .ex-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    background: var(--paper);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ex-card-vehicle {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .ex-card-body { padding: 0.85rem 1rem; }
+
+  .ex-card-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .ex-card-key {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    padding-top: 1px;
+  }
+
+  .ex-card-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+  .ex-card-actions .ex-act { flex: 1; justify-content: center; }
+
+  @media (max-width: 768px) {
+    .ex-wrap    { padding: 1rem; }
+    .ex-title   { font-size: 1.5rem; }
+    .ex-desktop { display: none; }
+    .ex-mobile  { display: block; }
+    .ex-header-actions .ex-btn span { display: none; }
+  }
+</style>
+
+<div class="ex-wrap">
+
+  <!-- Header -->
+  <div class="ex-header">
+    <div>
+      <p class="ex-eyebrow">Fleet Management</p>
+      <h1 class="ex-title">Vehicle <span>Expenses</span></h1>
     </div>
-    
-    <%= submit_tag "Filter", class: "btn btn-primary btn-sm" %>
-    <%= link_to "Clear", expenses_path, class: "btn btn-secondary btn-sm" %>
-    <%= link_to "+ New Expense", new_expense_path, class: "btn btn-primary btn-sm" %>
+    <div class="ex-header-actions">
+      <%= link_to new_expense_path, class: "ex-btn ex-btn-primary" do %>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        New Expense
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="ex-stats">
+    <div class="ex-stat red">
+      <div class="ex-stat-label">Total Expenses</div>
+      <div class="ex-stat-value"><%= number_to_currency(@total_expenses) %></div>
+      <div class="ex-stat-icon">💸</div>
+    </div>
+    <div class="ex-stat amber">
+      <div class="ex-stat-label">Transactions</div>
+      <div class="ex-stat-value"><%= @expenses.total_entries %></div>
+      <div class="ex-stat-icon">📋</div>
+    </div>
+    <div class="ex-stat green">
+      <div class="ex-stat-label">Active Vehicles</div>
+      <div class="ex-stat-value"><%= @vehicles.count %></div>
+      <div class="ex-stat-icon">🚛</div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <%= form_tag expenses_path, method: :get, class: "ex-filters" do %>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ink-3); flex-shrink:0;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    <%= select_tag :vehicle_id,
+          options_for_select([["All Vehicles", ""]] + @vehicles.map { |v| [v.display_name, v.id] }, params[:vehicle_id]),
+          class: "ex-input", style: "min-width: 150px;" %>
+    <%= select_tag :category,
+          options_for_select([["All Categories", ""]] + Expense::CATEGORIES.map { |k, v| [v, k] }, params[:category]),
+          class: "ex-input", style: "min-width: 140px;" %>
+    <%= date_field_tag :start_date, params[:start_date], class: "ex-input", style: "width: 130px;" %>
+    <span class="ex-filter-label">to</span>
+    <%= date_field_tag :end_date, params[:end_date], class: "ex-input", style: "width: 130px;" %>
+    <span class="ex-filter-label">Show</span>
+    <%= select_tag :per_page,
+          options_for_select([10, 20, 50, 100], params[:per_page] || 20),
+          class: "ex-input", style: "width: 70px;",
+          onchange: "this.form.submit()" %>
+    <span class="ex-filter-sep"></span>
+    <%= submit_tag "Filter", class: "ex-btn ex-btn-primary" %>
+    <%= link_to "Clear", expenses_path, class: "ex-btn ex-btn-ghost" %>
   <% end %>
-</div>
 
-<!-- Expenses Table -->
-<div class="card">
-  <div class="card-header">
-    <h3>All Expenses</h3>
-  </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="data-table">
+  <!-- ── DESKTOP TABLE ── -->
+  <div class="ex-panel ex-desktop">
+    <div class="ex-panel-head">
+      <h3 class="ex-panel-title">All Expenses</h3>
+    </div>
+
+    <% if @expenses.empty? %>
+      <div class="ex-empty">
+        <div class="ex-empty-icon">💸</div>
+        <p>No expenses found.</p>
+        <%= link_to "Record your first expense →", new_expense_path, class: "ex-btn ex-btn-primary" %>
+      </div>
+    <% else %>
+      <table class="ex-table">
         <thead>
           <tr>
             <th>Date</th>
@@ -72,63 +589,136 @@
             <th>Amount</th>
             <th>Receipt</th>
             <th>Recorded By</th>
-            <th style="width: 100px;">Actions</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <% @expenses.each do |expense| %>
             <tr>
-              <td data-label="Date"><%= expense.expense_date.strftime("%d/%m/%y") %></td>
-              <td data-label="Vehicle"><strong><%= expense.vehicle.registration_number %></strong></td>
-              <td data-label="Category"><span class="badge badge-active"><%= expense.category_name %></span></td>
-              <td data-label="Description"><%= truncate(expense.description, length: 40) %></td>
-              <td data-label="Amount" class="negative"><%= number_to_currency(expense.amount) %></td>
-              <td data-label="Receipt">
+              <td>
+                <span class="ex-date"><%= expense.expense_date.strftime("%-d %b %Y") %></span>
+              </td>
+              <td>
+                <span class="ex-vehicle"><%= expense.vehicle.registration_number %></span>
+              </td>
+              <td>
+                <span class="ex-cat"><%= expense.category_name %></span>
+              </td>
+              <td>
+                <span class="ex-desc"><%= truncate(expense.description, length: 40) %></span>
+              </td>
+              <td>
+                <span class="ex-amount"><%= number_to_currency(expense.amount) %></span>
+              </td>
+              <td>
                 <% if expense.receipt.attached? %>
-                  <%= link_to "View", receipt_expense_path(expense), target: "_blank", class: "link", style: "font-size: 0.75rem;" %>
+                  <%= link_to receipt_expense_path(expense), target: "_blank", class: "ex-receipt-link" do %>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    View
+                  <% end %>
                 <% else %>
-                  <span style="color: #64748b;">—</span>
+                  <span class="ex-receipt-none">—</span>
                 <% end %>
               </td>
-              <td data-label="Recorded By"><%= expense.recorded_by&.name || 'System' %></td>
-              <td data-label="Actions" style="white-space: nowrap;">
-                <%= link_to "View", expense, class: "btn btn-secondary btn-sm" %>
-                <%= link_to "Edit", edit_expense_path(expense), class: "btn btn-secondary btn-sm" %>
-                <%= button_to "Delete", expense, method: :delete, class: "btn btn-danger btn-sm", form: { style: "display: inline-block;", data: { turbo_confirm: "Are you sure?" } } %>
+              <td>
+                <span class="ex-recorded"><%= expense.recorded_by&.name || 'System' %></span>
+              </td>
+              <td>
+                <div class="ex-actions">
+                  <%= link_to "View", expense, class: "ex-act" %>
+                  <%= link_to "Edit", edit_expense_path(expense), class: "ex-act" %>
+                  <%= button_to "Delete", expense,
+                        method: :delete,
+                        class: "ex-act danger",
+                        form: { data: { turbo_confirm: "Delete this expense? This cannot be undone." } } %>
+                </div>
               </td>
             </tr>
           <% end %>
         </tbody>
       </table>
-    </div>
-    
-    <% if @expenses.empty? %>
-      <div style="text-align: center; padding: 3rem; color: #64748b;">
-        No expenses found. <%= link_to "Record your first expense", new_expense_path %>.
+    <% end %>
+
+    <% if @expenses.total_entries > 0 %>
+      <div class="ex-pagination">
+        <span>
+          <% if @expenses.total_pages > 1 %>
+            <%= @expenses.offset + 1 %>–<%= [@expenses.offset + @expenses.length, @expenses.total_entries].min %> of <%= @expenses.total_entries %> expenses
+          <% else %>
+            All <%= @expenses.total_entries %> expenses
+          <% end %>
+        </span>
+        <% if @expenses.total_pages > 1 %>
+          <%= will_paginate @expenses,
+                renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+                previous_label: '←',
+                next_label: '→',
+                class: 'pagination' %>
+        <% end %>
       </div>
     <% end %>
   </div>
-</div>
 
-<!-- Pagination -->
-<% if @expenses.total_entries > 0 %>
-  <div style="margin-top: 1.5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div style="font-size: 0.75rem; color: #64748b;">
-        <% if @expenses.total_pages > 1 %>
-          <%= @expenses.offset + 1 %> - <%= [@expenses.offset + @expenses.length, @expenses.total_entries].min %> of <%= @expenses.total_entries %> expenses
-        <% else %>
-          All <%= @expenses.total_entries %> expenses
-        <% end %>
+  <!-- ── MOBILE CARDS ── -->
+  <div class="ex-mobile">
+    <% @expenses.each_with_index do |expense, i| %>
+      <div class="ex-card" style="animation-delay: <%= i * 0.04 %>s;">
+        <div class="ex-card-head">
+          <span class="ex-card-vehicle"><%= expense.vehicle.registration_number %></span>
+          <span class="ex-cat"><%= expense.category_name %></span>
+        </div>
+        <div class="ex-card-body">
+          <div class="ex-card-grid">
+            <span class="ex-card-key">Date</span>
+            <span><%= expense.expense_date.strftime("%-d %b %Y") %></span>
+
+            <span class="ex-card-key">Amount</span>
+            <span class="ex-amount"><%= number_to_currency(expense.amount) %></span>
+
+            <span class="ex-card-key">Description</span>
+            <span style="color: var(--ink-3); font-size: 0.72rem;"><%= truncate(expense.description, length: 50) %></span>
+
+            <span class="ex-card-key">Recorded By</span>
+            <span style="font-size: 0.72rem;"><%= expense.recorded_by&.name || 'System' %></span>
+
+            <% if expense.receipt.attached? %>
+              <span class="ex-card-key">Receipt</span>
+              <%= link_to receipt_expense_path(expense), target: "_blank", class: "ex-receipt-link" do %>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                View Receipt
+              <% end %>
+            <% end %>
+          </div>
+
+          <div class="ex-card-actions">
+            <%= link_to "View", expense, class: "ex-act" %>
+            <%= link_to "Edit", edit_expense_path(expense), class: "ex-act" %>
+            <%= button_to "Delete", expense,
+                  method: :delete,
+                  class: "ex-act danger",
+                  form: { data: { turbo_confirm: "Delete this expense? This cannot be undone." } } %>
+          </div>
+        </div>
       </div>
-      
-      <% if @expenses.total_pages > 1 %>
-        <%= will_paginate @expenses, 
+    <% end %>
+
+    <% if @expenses.empty? %>
+      <div class="ex-empty">
+        <div class="ex-empty-icon">💸</div>
+        <p>No expenses found.</p>
+        <%= link_to "Record your first expense →", new_expense_path, class: "ex-btn ex-btn-primary" %>
+      </div>
+    <% end %>
+
+    <% if @expenses.total_entries > 0 && @expenses.total_pages > 1 %>
+      <div style="padding: 0.5rem 0;">
+        <%= will_paginate @expenses,
               renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
               previous_label: '←',
               next_label: '→',
               class: 'pagination' %>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   </div>
-<% end %>
+
+</div>

@@ -1,176 +1,619 @@
-<div class="page-header">
-  <h1>Reports</h1>
-  <p>Generate and export business reports</p>
-</div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
-<!-- Date Range Selector -->
-<div class="card" style="margin-bottom: 1.5rem;">
-  <div class="card-header">
-    <h3>Select Date Range</h3>
+  :root {
+    --ink:     #0f1117;
+    --ink-2:   #2a2d38;
+    --ink-3:   #5c6070;
+    --paper:   #f7f6f2;
+    --surface: #ffffff;
+    --border:  #e4e2da;
+    --green:   #1a9e6e;
+    --green-l: #e8f7f2;
+    --red:     #d63d2f;
+    --red-l:   #fdf0ee;
+    --amber:   #c07b1a;
+    --amber-l: #fef6e7;
+    --blue:    #2563eb;
+    --blue-l:  #eff4ff;
+  }
+
+  .rp-wrap {
+    font-family: 'Inconsolata', monospace;
+    background: var(--paper);
+    min-height: 100vh;
+    padding: 2rem 2rem 3rem;
+    color: var(--ink);
+  }
+
+  /* ── Header ── */
+  .rp-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1.5px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .rp-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.3rem;
+  }
+
+  .rp-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .rp-title span { color: var(--green); }
+
+  /* ── Date Range Panel ── */
+  .rp-date-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  .rp-date-head {
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .rp-date-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  .rp-date-body {
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .rp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .rp-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .rp-input {
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .rp-input:focus {
+    border-color: var(--ink-2);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(15,17,23,0.07);
+  }
+
+  /* ── Buttons ── */
+  .rp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.9rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .rp-btn-primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  .rp-btn-primary:hover {
+    background: var(--ink-2);
+    box-shadow: 2px 2px 0 var(--green);
+    transform: translate(-1px,-1px);
+    color: #fff;
+  }
+
+  .rp-btn-ghost {
+    background: transparent;
+    color: var(--ink-3);
+    border-color: var(--border);
+  }
+
+  .rp-btn-ghost:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+    background: var(--surface);
+  }
+
+  /* ── Stats ── */
+  .rp-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .rp-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.9rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: statIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .rp-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+
+  .rp-stat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .rp-stat.green::before { background: var(--green); }
+  .rp-stat.red::before   { background: var(--red); }
+  .rp-stat.amber::before { background: var(--amber); }
+  .rp-stat.blue::before  { background: var(--blue); }
+
+  .rp-stat-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.3rem;
+  }
+
+  .rp-stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .rp-stat.green .rp-stat-value { color: var(--green); }
+  .rp-stat.red   .rp-stat-value { color: var(--red); }
+  .rp-stat.amber .rp-stat-value { color: var(--amber); }
+  .rp-stat.blue  .rp-stat-value { color: var(--blue); }
+
+  .rp-stat-sub {
+    font-size: 0.62rem;
+    color: var(--ink-3);
+    margin-top: 0.25rem;
+  }
+
+  .rp-stat:nth-child(1) { animation-delay: 0.04s; }
+  .rp-stat:nth-child(2) { animation-delay: 0.08s; }
+  .rp-stat:nth-child(3) { animation-delay: 0.12s; }
+  .rp-stat:nth-child(4) { animation-delay: 0.16s; }
+
+  @keyframes statIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Report Cards Grid ── */
+  .rp-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .rp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: statIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .rp-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+
+  .rp-card:nth-child(1) { animation-delay: 0.06s; }
+  .rp-card:nth-child(2) { animation-delay: 0.10s; }
+  .rp-card:nth-child(3) { animation-delay: 0.14s; }
+  .rp-card:nth-child(4) { animation-delay: 0.18s; }
+
+  .rp-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.1rem;
+    background: var(--paper);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rp-card-icon {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .rp-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  .rp-card-body {
+    padding: 0.85rem 1.1rem;
+  }
+
+  .rp-card-desc {
+    font-size: 0.72rem;
+    color: var(--ink-3);
+    margin: 0 0 0.85rem;
+    line-height: 1.5;
+  }
+
+  .rp-card-actions {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── Action buttons ── */
+  .rp-act {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--ink-3);
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+
+  .rp-act:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
+
+  .rp-act.primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  .rp-act.primary:hover { background: var(--ink-2); color: #fff; }
+
+  /* ── Two-col tables ── */
+  .rp-tables {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+
+  .rp-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .rp-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--paper);
+  }
+
+  .rp-panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  .rp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+
+  .rp-table thead tr {
+    background: var(--paper);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .rp-table th {
+    text-align: left;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .rp-table th:not(:first-child) { text-align: right; }
+
+  .rp-table td {
+    padding: 0.65rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .rp-table td:not(:first-child) { text-align: right; }
+
+  .rp-table tbody tr:last-child td { border-bottom: none; }
+  .rp-table tbody tr { transition: background 0.12s; }
+  .rp-table tbody tr:hover { background: var(--paper); }
+
+  .text-green { color: var(--green); font-weight: 500; }
+  .text-red   { color: var(--red);   font-weight: 500; }
+  .text-muted { color: var(--ink-3); }
+
+  @media (max-width: 768px) {
+    .rp-wrap   { padding: 1rem; }
+    .rp-title  { font-size: 1.5rem; }
+    .rp-tables { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="rp-wrap">
+
+  <!-- Header -->
+  <div class="rp-header">
+    <div>
+      <p class="rp-eyebrow">Fleet Management</p>
+      <h1 class="rp-title">Business <span>Reports</span></h1>
+    </div>
   </div>
-  <div class="card-body">
-    <%= form_tag reports_path, method: :get, style: "display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;" do %>
-      <div class="form-group" style="margin-bottom: 0;">
-        <%= label_tag :start_date, "Start Date" %>
-        <%= date_field_tag :start_date, @start_date, class: "form-control" %>
+
+  <!-- Date Range -->
+  <div class="rp-date-panel">
+    <div class="rp-date-head">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ink-3);"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <h3 class="rp-date-title">Date Range</h3>
+    </div>
+    <%= form_tag reports_path, method: :get, class: "rp-date-body" do %>
+      <div class="rp-field">
+        <label class="rp-label">Start Date</label>
+        <%= date_field_tag :start_date, @start_date, class: "rp-input" %>
       </div>
-      <div class="form-group" style="margin-bottom: 0;">
-        <%= label_tag :end_date, "End Date" %>
-        <%= date_field_tag :end_date, @end_date, class: "form-control" %>
+      <div class="rp-field">
+        <label class="rp-label">End Date</label>
+        <%= date_field_tag :end_date, @end_date, class: "rp-input" %>
       </div>
-      <div>
-        <%= submit_tag "Update Reports", class: "btn btn-primary btn-sm" %>
-      </div>
+      <%= submit_tag "Update Reports", class: "rp-btn rp-btn-primary" %>
     <% end %>
   </div>
-</div>
 
-<!-- Summary Stats -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
-    <div style="font-size: 0.7rem; color: #64748b;">Total Revenue</div>
-    <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@total_revenue) %></div>
+  <!-- Summary Stats -->
+  <div class="rp-stats">
+    <div class="rp-stat green">
+      <div class="rp-stat-label">Total Revenue</div>
+      <div class="rp-stat-value"><%= number_to_currency(@total_revenue) %></div>
+    </div>
+    <div class="rp-stat red">
+      <div class="rp-stat-label">Total Expenses</div>
+      <div class="rp-stat-value"><%= number_to_currency(@total_expenses) %></div>
+    </div>
+    <div class="rp-stat green">
+      <div class="rp-stat-label">Net Profit</div>
+      <div class="rp-stat-value"><%= number_to_currency(@net_profit) %></div>
+    </div>
+    <div class="rp-stat amber">
+      <div class="rp-stat-label">Outstanding</div>
+      <div class="rp-stat-value"><%= number_to_currency(@outstanding_amount) %></div>
+      <div class="rp-stat-sub"><%= @outstanding_count %> pending transactions</div>
+    </div>
   </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #ef4444;">
-    <div style="font-size: 0.7rem; color: #64748b;">Total Expenses</div>
-    <div style="font-size: 1.25rem; font-weight: 700; color: #ef4444;"><%= number_to_currency(@total_expenses) %></div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
-    <div style="font-size: 0.7rem; color: #64748b;">Net Profit</div>
-    <div style="font-size: 1.25rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@net_profit) %></div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #f59e0b;">
-    <div style="font-size: 0.7rem; color: #64748b;">Outstanding</div>
-    <div style="font-size: 1.25rem; font-weight: 700; color: #f59e0b;"><%= number_to_currency(@outstanding_amount) %></div>
-    <div style="font-size: 0.7rem;"><%= @outstanding_count %> pending transactions</div>
-  </div>
-</div>
 
-<!-- Report Links Grid -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-  <!-- Sales Report Card -->
-  <div class="card">
-    <div class="card-header">
-      <h3>📊 Sales Report</h3>
-    </div>
-    <div class="card-body">
-      <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.875rem;">Detailed sales transactions with customer and product information.</p>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <%= link_to "View Report", reports_sales_report_path(start_date: @start_date, end_date: @end_date), class: "btn btn-primary btn-sm" %>
-        <%= link_to "Download PDF", reports_sales_report_path(start_date: @start_date, end_date: @end_date, format: :pdf), class: "btn btn-secondary btn-sm" %>
-        <%= link_to "Export Excel", reports_sales_report_path(start_date: @start_date, end_date: @end_date, format: :xlsx), class: "btn btn-secondary btn-sm" %>
+  <!-- Report Cards -->
+  <div class="rp-cards">
+    <!-- Sales Report -->
+    <div class="rp-card">
+      <div class="rp-card-head">
+        <span class="rp-card-icon">📊</span>
+        <h3 class="rp-card-title">Sales Report</h3>
+      </div>
+      <div class="rp-card-body">
+        <p class="rp-card-desc">Detailed sales transactions with customer and product information.</p>
+        <div class="rp-card-actions">
+          <%= link_to "View", reports_sales_report_path(start_date: @start_date, end_date: @end_date), class: "rp-act primary" %>
+          <%= link_to reports_sales_report_path(start_date: @start_date, end_date: @end_date, format: :pdf), class: "rp-act" do %>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            PDF
+          <% end %>
+          <%= link_to reports_sales_report_path(start_date: @start_date, end_date: @end_date, format: :xlsx), class: "rp-act" do %>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Excel
+          <% end %>
+        </div>
       </div>
     </div>
-  </div>
-  
-  <!-- Expenses Report Card -->
-  <div class="card">
-    <div class="card-header">
-      <h3>💸 Expenses Report</h3>
-    </div>
-    <div class="card-body">
-      <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.875rem;">Track expenses by category, vehicle, and date range.</p>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <%= link_to "View Report", reports_expenses_report_path(start_date: @start_date, end_date: @end_date), class: "btn btn-primary btn-sm" %>
-        <%= link_to "Download PDF", reports_expenses_report_path(start_date: @start_date, end_date: @end_date, format: :pdf), class: "btn btn-secondary btn-sm" %>
-        <%= link_to "Export Excel", reports_expenses_report_path(start_date: @start_date, end_date: @end_date, format: :xlsx), class: "btn btn-secondary btn-sm" %>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Profit & Loss Card -->
-  <div class="card">
-    <div class="card-header">
-      <h3>📈 Profit & Loss Report</h3>
-    </div>
-    <div class="card-body">
-      <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.875rem;">Monthly breakdown of revenue, expenses, and profit margins.</p>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <%= link_to "View Report", reports_profit_loss_report_path(start_date: @start_date, end_date: @end_date), class: "btn btn-primary btn-sm" %>
-        <%= link_to "Download PDF", reports_profit_loss_report_path(start_date: @start_date, end_date: @end_date, format: :pdf), class: "btn btn-secondary btn-sm" %>
-        <%= link_to "Export Excel", reports_profit_loss_report_path(start_date: @start_date, end_date: @end_date, format: :xlsx), class: "btn btn-secondary btn-sm" %>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Outstanding Payments Card -->
-  <div class="card">
-    <div class="card-header">
-      <h3>⏳ Outstanding Payments Report</h3>
-    </div>
-    <div class="card-body">
-      <p style="color: #64748b; margin-bottom: 1rem; font-size: 0.875rem;">Track pending customer payments with aging analysis.</p>
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-        <%= link_to "View Report", reports_outstanding_report_path, class: "btn btn-primary btn-sm" %>
-        <%= link_to "Download PDF", reports_outstanding_report_path(format: :pdf), class: "btn btn-secondary btn-sm" %>
-        <%= link_to "Export Excel", reports_outstanding_report_path(format: :xlsx), class: "btn btn-secondary btn-sm" %>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Quick Stats Tables - Side by side with proper card fitting -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-  <!-- Top Products -->
-  <div class="card">
-    <div class="card-header">
-      <h3>🏆 Top 5 Products by Revenue</h3>
+    <!-- Expenses Report -->
+    <div class="rp-card">
+      <div class="rp-card-head">
+        <span class="rp-card-icon">💸</span>
+        <h3 class="rp-card-title">Expenses Report</h3>
+      </div>
+      <div class="rp-card-body">
+        <p class="rp-card-desc">Track expenses by category, vehicle, and date range.</p>
+        <div class="rp-card-actions">
+          <%= link_to "View", reports_expenses_report_path(start_date: @start_date, end_date: @end_date), class: "rp-act primary" %>
+          <%= link_to reports_expenses_report_path(start_date: @start_date, end_date: @end_date, format: :pdf), class: "rp-act" do %>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            PDF
+          <% end %>
+          <%= link_to reports_expenses_report_path(start_date: @start_date, end_date: @end_date, format: :xlsx), class: "rp-act" do %>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Excel
+          <% end %>
+        </div>
+      </div>
     </div>
-    <div class="card-body" style="padding: 0;">
-      <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Product</th>
-              <th style="text-align: right; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Revenue</th>
-              <th style="text-align: right; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">% of Total</th>
+
+    <!-- Profit & Loss -->
+    <div class="rp-card">
+      <div class="rp-card-head">
+        <span class="rp-card-icon">📈</span>
+        <h3 class="rp-card-title">Profit &amp; Loss</h3>
+      </div>
+      <div class="rp-card-body">
+        <p class="rp-card-desc">Monthly breakdown of revenue, expenses, and profit margins.</p>
+        <div class="rp-card-actions">
+          <%= link_to "View", reports_profit_loss_report_path(start_date: @start_date, end_date: @end_date), class: "rp-act primary" %>
+          <%= link_to reports_profit_loss_report_path(start_date: @start_date, end_date: @end_date, format: :pdf), class: "rp-act" do %>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            PDF
+          <% end %>
+          <%= link_to reports_profit_loss_report_path(start_date: @start_date, end_date: @end_date, format: :xlsx), class: "rp-act" do %>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Excel
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outstanding Payments -->
+    <div class="rp-card">
+      <div class="rp-card-head">
+        <span class="rp-card-icon">⏳</span>
+        <h3 class="rp-card-title">Outstanding Payments</h3>
+      </div>
+      <div class="rp-card-body">
+        <p class="rp-card-desc">Track pending customer payments with aging analysis.</p>
+        <div class="rp-card-actions">
+          <%= link_to "View", reports_outstanding_report_path, class: "rp-act primary" %>
+          <%= link_to reports_outstanding_report_path(format: :pdf), class: "rp-act" do %>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            PDF
+          <% end %>
+          <%= link_to reports_outstanding_report_path(format: :xlsx), class: "rp-act" do %>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Excel
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats Tables -->
+  <div class="rp-tables">
+
+    <!-- Top Products -->
+    <div class="rp-panel">
+      <div class="rp-panel-head">
+        <span style="font-size: 0.9rem;">🏆</span>
+        <h3 class="rp-panel-title">Top 5 Products by Revenue</h3>
+      </div>
+      <table class="rp-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Revenue</th>
+            <th>% of Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @sales_by_product.each do |product_id, amount| %>
+            <% product = Product.find_by(id: product_id) %>
+            <% next unless product %>
+            <tr>
+              <td><strong><%= product.name %></strong></td>
+              <td class="text-green"><%= number_to_currency(amount) %></td>
+              <td class="text-muted"><%= number_to_percentage((amount / @total_revenue.to_f * 100), precision: 1) if @total_revenue > 0 %></td>
             </tr>
-          </thead>
-          <tbody>
-            <% @sales_by_product.each do |product_id, amount| %>
-              <% product = Product.find_by(id: product_id) %>
-              <% next unless product %>
-              <tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 0.75rem; font-size: 0.8rem;"><strong><%= product.name %></strong></td>
-                <td style="padding: 0.75rem; font-size: 0.8rem; text-align: right; color: #10b981;"><%= number_to_currency(amount) %></td>
-                <td style="padding: 0.75rem; font-size: 0.8rem; text-align: right; color: #64748b;"><%= number_to_percentage((amount / @total_revenue.to_f * 100), precision: 1) if @total_revenue > 0 %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Expenses by Category -->
+    <div class="rp-panel">
+      <div class="rp-panel-head">
+        <span style="font-size: 0.9rem;">📊</span>
+        <h3 class="rp-panel-title">Expenses by Category</h3>
       </div>
-    </div>
-  </div>
-  
-  <!-- Expenses by Category -->
-  <div class="card">
-    <div class="card-header">
-      <h3>📊 Expenses by Category</h3>
-    </div>
-    <div class="card-body" style="padding: 0;">
-      <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-              <th style="text-align: left; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Category</th>
-              <th style="text-align: right; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">Amount</th>
-              <th style="text-align: right; padding: 0.75rem; font-weight: 600; font-size: 0.75rem;">% of Total</th>
+      <table class="rp-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>% of Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @expenses_by_category.each do |category, amount| %>
+            <tr>
+              <td><strong><%= category.titleize %></strong></td>
+              <td class="text-red"><%= number_to_currency(amount) %></td>
+              <td class="text-muted"><%= number_to_percentage((amount / @total_expenses.to_f * 100), precision: 1) if @total_expenses > 0 %></td>
             </tr>
-          </thead>
-          <tbody>
-            <% @expenses_by_category.each do |category, amount| %>
-              <tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 0.75rem; font-size: 0.8rem;"><strong><%= category.titleize %></strong></td>
-                <td style="padding: 0.75rem; font-size: 0.8rem; text-align: right; color: #ef4444;"><%= number_to_currency(amount) %></td>
-                <td style="padding: 0.75rem; font-size: 0.8rem; text-align: right; color: #64748b;"><%= number_to_percentage((amount / @total_expenses.to_f * 100), precision: 1) if @total_expenses > 0 %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
+          <% end %>
+        </tbody>
+      </table>
     </div>
+
   </div>
+
 </div>

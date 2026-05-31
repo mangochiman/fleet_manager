@@ -1,9 +1,9 @@
 # Clear existing data (optional - be careful in production!)
 puts "Cleaning existing data..."
-Expense.destroy_all if defined?(Expense)
-Sale.destroy_all if defined?(Sale)
 PaymentHistory.destroy_all if defined?(PaymentHistory)
 ActivityLog.destroy_all if defined?(ActivityLog)
+Expense.destroy_all if defined?(Expense)
+Sale.destroy_all if defined?(Sale)
 User.destroy_all
 Vehicle.destroy_all
 Product.destroy_all
@@ -28,18 +28,20 @@ vehicle2 = Vehicle.create!(
 
 puts "✓ Created #{Vehicle.count} vehicles"
 
-# Create products
+# Create products - Construction Materials for Tipper Trucks
 puts "Creating products..."
 products = [
-  { name: 'Premium Diesel', description: 'High quality diesel fuel', price: 120.50, unit: 'liters', active: true },
-  { name: 'Regular Petrol', description: 'Standard unleaded petrol', price: 115.00, unit: 'liters', active: true },
-  { name: 'Lubricant Oil', description: 'Engine lubricating oil', price: 850.00, unit: 'liters', active: true },
-  { name: 'Truck Tires', description: 'Heavy duty truck tires', price: 25000.00, unit: 'piece', active: true }
+  { name: 'Sharp Sand',      description: 'Quality building sand for construction',          price: 35000.00, unit: 'tons', active: true },
+  { name: 'Ballast (3/4")',  description: 'Crushed stone for concrete and road construction', price: 50000.00, unit: 'tons', active: true },
+  { name: 'Ballast (1/2")',  description: 'Small crushed stone for fine concrete work',       price: 45000.00, unit: 'tons', active: true },
+  { name: 'Hardcore',        description: 'Base material for roads and foundation',           price: 40000.00, unit: 'tons', active: true },
+  { name: 'Quarry Dust',     description: 'Fine material for block making and plastering',    price: 25000.00, unit: 'tons', active: true },
+  { name: 'Red Soil',        description: 'Fill material for landscaping and site preparation', price: 18000.00, unit: 'tons', active: true },
+  { name: 'Aggregate (20mm)', description: 'General purpose construction aggregate',          price: 48000.00, unit: 'tons', active: true },
+  { name: 'Aggregate (10mm)', description: 'Small aggregate for concrete finishing',          price: 52000.00, unit: 'tons', active: true }
 ]
 
-products.each do |product|
-  Product.create!(product)
-end
+products.each { |attrs| Product.create!(attrs) }
 
 puts "✓ Created #{Product.count} products"
 
@@ -50,8 +52,8 @@ admin = User.create!(
   password: 'password123',
   password_confirmation: 'password123',
   name: 'System Admin',
-  phone: '+1234567890',
-  role: 3  # super_admin
+  phone: '+265888888888',
+  role: 3
 )
 
 puts "✓ Created admin user"
@@ -63,8 +65,8 @@ driver = User.create!(
   password: 'password123',
   password_confirmation: 'password123',
   name: 'John Driver',
-  phone: '+9876543210',
-  role: 0,  # driver
+  phone: '+265999999999',
+  role: 0,
   vehicle: vehicle1
 )
 
@@ -77,31 +79,32 @@ manager = User.create!(
   password: 'password123',
   password_confirmation: 'password123',
   name: 'Sarah Manager',
-  phone: '+5555555555',
-  role: 2,  # manager
+  phone: '+265777777777',
+  role: 2,
   vehicle: nil
 )
 
 puts "✓ Created manager user"
 
-# Create sample sales
+# Create sample sales with construction materials
 puts "Creating sample sales..."
-product = Product.first
+products_list = Product.all.to_a
 
-20.times do |i|
+30.times do |i|
   status = ['outstanding', 'paid', 'banked'].sample
-  days_ago = rand(1..60)
-  
+  selected_product = products_list.sample
+  quantity = rand(5..30)
+
   Sale.create!(
     user: [admin, driver, manager].sample,
     vehicle: [vehicle1, vehicle2].sample,
-    product: product,
-    customer_name: "Customer #{i+1}",
-    customer_phone: "+2547#{rand(1000000..9999999)}",
-    quantity: rand(10..100),
-    unit_price: product.price,
-    total_amount: rand(1000..50000),
-    transaction_date: days_ago.days.ago,
+    product: selected_product,
+    customer_name: "Customer #{i + 1}",
+    customer_phone: "+265#{rand(100_000_000..999_999_999)}",
+    quantity: quantity,
+    unit_price: selected_product.price,
+    total_amount: selected_product.price * quantity,
+    transaction_date: rand(1..60).days.ago,
     payment_status: status
   )
 end
@@ -112,7 +115,7 @@ puts "✓ Created #{Sale.count} sample sales"
 puts "Creating sample expenses..."
 expense_categories = ['fuel', 'service', 'breakdown', 'tires', 'salaries', 'others']
 descriptions = [
-  'Fuel for Nairobi trip',
+  'Fuel for Lilongwe trip',
   'Regular maintenance service',
   'Emergency roadside repair',
   'New set of tires',
@@ -120,7 +123,7 @@ descriptions = [
   'Miscellaneous expenses'
 ]
 
-15.times do |i|
+15.times do
   Expense.create!(
     vehicle: [vehicle1, vehicle2].sample,
     category: expense_categories.sample,
@@ -133,18 +136,23 @@ end
 
 puts "✓ Created #{Expense.count} sample expenses"
 
-puts "\n" + "="*50
+puts "\n" + "=" * 50
 puts "✅ SEED COMPLETED SUCCESSFULLY!"
-puts "="*50
+puts "=" * 50
 puts "\n📋 LOGIN CREDENTIALS:"
-puts "   Admin Email: admin@fleet.com"
+puts "   Admin Email:   admin@fleet.com"
 puts "   Admin Password: password123"
+puts "   (Super Admin - Full access including user management)"
 puts ""
-puts "   Driver Email: driver@fleet.com"
+puts "   Driver Email:  driver@fleet.com"
 puts "   Driver Password: password123"
+puts "   (Driver - Can only view own sales, assigned vehicle)"
 puts ""
 puts "   Manager Email: manager@fleet.com"
 puts "   Manager Password: password123"
+puts "   (Manager - Full access including reports)"
+puts "\n📊 PRODUCTS LOADED:"
+Product.all.each { |p| puts "   - #{p.name}: MK #{p.price} per #{p.unit}" }
 puts "\n🚀 You can now run: rails server"
 puts "   Then visit: http://localhost:3000"
-puts "="*50
+puts "=" * 50

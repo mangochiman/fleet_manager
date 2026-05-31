@@ -1,147 +1,670 @@
-<div class="page-header">
-  <h1>Vehicles</h1>
-  <p>Manage your fleet of vehicles</p>
-</div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
-<!-- Compact Stats Bar -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Total Vehicles</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @total_vehicles %></div>
-      </div>
-      <div style="font-size: 1.5rem;">🚛</div>
-    </div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Active</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @active_vehicles %></div>
-      </div>
-      <div style="font-size: 1.5rem;">✅</div>
-    </div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #f59e0b;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Maintenance</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @maintenance_vehicles %></div>
-      </div>
-      <div style="font-size: 1.5rem;">🔧</div>
-    </div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Total Profit</div>
-        <div style="font-size: 1rem; font-weight: 700; color: #1e293b;"><%= number_to_currency(@total_profit) %></div>
-      </div>
-      <div style="font-size: 1.5rem;">💰</div>
-    </div>
-  </div>
-</div>
+  :root {
+    --ink:     #0f1117;
+    --ink-2:   #2a2d38;
+    --ink-3:   #5c6070;
+    --paper:   #f7f6f2;
+    --surface: #ffffff;
+    --border:  #e4e2da;
+    --green:   #1a9e6e;
+    --green-l: #e8f7f2;
+    --red:     #d63d2f;
+    --red-l:   #fdf0ee;
+    --amber:   #c07b1a;
+    --amber-l: #fef6e7;
+    --blue:    #2563eb;
+    --blue-l:  #eff4ff;
+  }
 
-<!-- Search and Filter Bar -->
-<div style="margin-bottom: 1.5rem;">
-  <%= form_tag vehicles_path, method: :get, style: "display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;" do %>
-    <%= text_field_tag :search, params[:search], placeholder: "Search by reg, make, or model...", class: "form-control", style: "flex: 1; min-width: 150px;" %>
-    <%= select_tag :status, options_for_select([["All Status", ""], ["Active", "active"], ["Maintenance", "maintenance"], ["Retired", "retired"]], params[:status]), class: "form-control", style: "width: auto; min-width: 120px;" %>
-    
-    <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <span style="font-size: 0.75rem; color: #64748b;">Show:</span>
-      <%= select_tag :per_page, options_for_select([10, 20, 50], params[:per_page] || 10), class: "form-control", style: "width: auto; min-width: 65px;", onchange: "this.form.submit()" %>
+  .veh-wrap {
+    font-family: 'Inconsolata', monospace;
+    background: var(--paper);
+    min-height: 100vh;
+    padding: 2rem 2rem 3rem;
+    color: var(--ink);
+  }
+
+  /* ── Header ── */
+  .veh-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1.5px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .veh-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.3rem;
+  }
+
+  .veh-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .veh-title span { color: var(--green); }
+
+  .veh-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ── Buttons ── */
+  .veh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.9rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .veh-btn-primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  .veh-btn-primary:hover {
+    background: var(--ink-2);
+    box-shadow: 2px 2px 0 var(--green);
+    transform: translate(-1px, -1px);
+    color: #fff;
+  }
+
+  .veh-btn-ghost {
+    background: transparent;
+    color: var(--ink-3);
+    border-color: var(--border);
+  }
+
+  .veh-btn-ghost:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+    background: var(--surface);
+  }
+
+  /* ── Stat Cards ── */
+  .veh-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .veh-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.9rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: statIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .veh-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+
+  .veh-stat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .veh-stat.green::before { background: var(--green); }
+  .veh-stat.amber::before { background: var(--amber); }
+  .veh-stat.blue::before  { background: var(--blue); }
+  .veh-stat.ink::before   { background: var(--ink-2); }
+
+  .veh-stat-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.3rem;
+  }
+
+  .veh-stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .veh-stat.green .veh-stat-value { color: var(--green); }
+  .veh-stat.amber .veh-stat-value { color: var(--amber); }
+  .veh-stat.blue  .veh-stat-value { color: var(--blue); }
+  .veh-stat.ink   .veh-stat-value { color: var(--ink); }
+
+  .veh-stat:nth-child(1) { animation-delay: 0.04s; }
+  .veh-stat:nth-child(2) { animation-delay: 0.08s; }
+  .veh-stat:nth-child(3) { animation-delay: 0.12s; }
+  .veh-stat:nth-child(4) { animation-delay: 0.16s; }
+
+  @keyframes statIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Filter bar ── */
+  .veh-filters {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .veh-input {
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .veh-input:focus {
+    border-color: var(--ink-2);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(15,17,23,0.07);
+  }
+
+  .veh-input::placeholder { color: var(--ink-3); }
+
+  .veh-filter-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .veh-filter-sep { flex: 1; }
+
+  /* ── Panel ── */
+  .veh-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .veh-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .veh-panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  /* ── Table ── */
+  .veh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+
+  .veh-table thead tr {
+    background: var(--paper);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .veh-table th {
+    text-align: left;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .veh-table td {
+    padding: 0.7rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .veh-table tbody tr:last-child td { border-bottom: none; }
+  .veh-table tbody tr { transition: background 0.12s; }
+  .veh-table tbody tr:hover { background: var(--paper); }
+
+  /* ── Status badge ── */
+  .veh-badge {
+    display: inline-block;
+    padding: 0.18rem 0.5rem;
+    border-radius: 2px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .veh-badge.active      { background: var(--green-l); color: var(--green); }
+  .veh-badge.maintenance { background: var(--amber-l); color: var(--amber); }
+  .veh-badge.retired     { background: var(--red-l);   color: var(--red); }
+
+  /* ── Progress bar ── */
+  .veh-progress {
+    height: 4px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+    min-width: 60px;
+    flex: 1;
+  }
+
+  .veh-progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
+  }
+
+  .veh-progress-fill.pos { background: var(--green); }
+  .veh-progress-fill.neg { background: var(--red); }
+
+  /* ── Cell helpers ── */
+  .veh-reg {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+
+  .veh-make {
+    font-size: 0.75rem;
+    color: var(--ink-2);
+  }
+
+  .veh-amount-pos { font-weight: 600; color: var(--green); font-family: 'Syne', sans-serif; font-size: 0.82rem; }
+  .veh-amount-neg { font-weight: 600; color: var(--red);   font-family: 'Syne', sans-serif; font-size: 0.82rem; }
+
+  /* ── Action group ── */
+  .veh-actions { display: flex; gap: 0.35rem; align-items: center; }
+
+  .veh-act {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.6rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--ink-3);
+    background: transparent;
+    transition: all 0.12s;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .veh-act:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
+
+  /* ── Empty state ── */
+  .veh-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ink-3);
+  }
+
+  .veh-empty-icon { font-size: 2.5rem; opacity: 0.3; margin-bottom: 0.75rem; }
+  .veh-empty p { font-size: 0.8rem; margin: 0 0 0.75rem; }
+
+  /* ── Pagination ── */
+  .veh-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.85rem 1.1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--ink-3);
+  }
+
+  .veh-pagination .pagination {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .veh-pagination .pagination li a,
+  .veh-pagination .pagination li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 0.4rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    text-decoration: none;
+    color: var(--ink-3);
+    transition: all 0.12s;
+  }
+
+  .veh-pagination .pagination li a:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
+  .veh-pagination .pagination li.active span { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .veh-pagination .pagination li.disabled span { opacity: 0.4; }
+
+  /* ── Mobile cards ── */
+  .veh-mobile { display: none; }
+
+  .veh-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    animation: statIn 0.35s ease both;
+  }
+
+  .veh-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    background: var(--paper);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .veh-card-reg {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .veh-card-body { padding: 0.85rem 1rem; }
+
+  .veh-card-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .veh-card-key {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    padding-top: 1px;
+  }
+
+  .veh-card-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+  .veh-card-actions .veh-act { flex: 1; justify-content: center; }
+
+  @media (max-width: 768px) {
+    .veh-wrap    { padding: 1rem; }
+    .veh-title   { font-size: 1.5rem; }
+    .veh-desktop { display: none; }
+    .veh-mobile  { display: block; }
+    .veh-header-actions .veh-btn span { display: none; }
+    .veh-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+<div class="veh-wrap">
+
+  <!-- Header -->
+  <div class="veh-header">
+    <div>
+      <p class="veh-eyebrow">Fleet Management</p>
+      <h1 class="veh-title">Fleet <span>Vehicles</span></h1>
     </div>
-    
-    <%= submit_tag "Filter", class: "btn btn-primary btn-sm" %>
-    <%= link_to "Clear", vehicles_path, class: "btn btn-secondary btn-sm" %>
-    <%= link_to "+ Add Vehicle", new_vehicle_path, class: "btn btn-primary btn-sm" %>
+    <div class="veh-header-actions">
+      <%= link_to new_vehicle_path, class: "veh-btn veh-btn-primary" do %>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        <span>Add Vehicle</span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="veh-stats">
+    <div class="veh-stat green">
+      <div class="veh-stat-label">Total Vehicles</div>
+      <div class="veh-stat-value"><%= @total_vehicles %></div>
+    </div>
+    <div class="veh-stat green">
+      <div class="veh-stat-label">Active</div>
+      <div class="veh-stat-value"><%= @active_vehicles %></div>
+    </div>
+    <div class="veh-stat amber">
+      <div class="veh-stat-label">Maintenance</div>
+      <div class="veh-stat-value"><%= @maintenance_vehicles %></div>
+    </div>
+    <div class="veh-stat blue">
+      <div class="veh-stat-label">Total Profit</div>
+      <div class="veh-stat-value"><%= number_to_currency(@total_profit) %></div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <%= form_tag vehicles_path, method: :get, class: "veh-filters" do %>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ink-3); flex-shrink:0;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    <%= text_field_tag :search, params[:search],
+          placeholder: "Search reg, make, or model…",
+          class: "veh-input",
+          style: "flex: 1; min-width: 180px;" %>
+    <%= select_tag :status,
+          options_for_select([["All Status",""],["Active","active"],["Maintenance","maintenance"],["Retired","retired"]], params[:status]),
+          class: "veh-input",
+          style: "min-width: 140px;" %>
+    <span class="veh-filter-label">Show</span>
+    <%= select_tag :per_page,
+          options_for_select([10, 20, 50], params[:per_page] || 10),
+          class: "veh-input",
+          style: "width: 70px;",
+          onchange: "this.form.submit()" %>
+    <span class="veh-filter-sep"></span>
+    <%= submit_tag "Filter", class: "veh-btn veh-btn-primary" %>
+    <%= link_to "Clear", vehicles_path, class: "veh-btn veh-btn-ghost" %>
   <% end %>
-</div>
 
-<!-- Vehicles Table -->
-<div class="card">
-  <div class="card-header">
-    <h3>All Vehicles</h3>
-  </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="data-table">
+  <!-- ── DESKTOP TABLE ── -->
+  <div class="veh-panel veh-desktop">
+    <div class="veh-panel-head">
+      <h3 class="veh-panel-title">All Vehicles</h3>
+    </div>
+
+    <% if @vehicles.empty? %>
+      <div class="veh-empty">
+        <div class="veh-empty-icon">🚛</div>
+        <p>No vehicles found.</p>
+        <%= link_to "Add your first vehicle →", new_vehicle_path, class: "veh-btn veh-btn-primary" %>
+      </div>
+    <% else %>
+      <table class="veh-table">
         <thead>
           <tr>
             <th>Registration</th>
-            <th>Make & Model</th>
+            <th>Make &amp; Model</th>
             <th>Year</th>
             <th>Status</th>
             <th>Revenue</th>
             <th>Expenses</th>
             <th>Profit</th>
             <th>Margin</th>
-            <th style="width: 100px;">Actions</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <% @vehicles.each do |vehicle| %>
             <tr>
-              <td data-label="Registration"><strong><%= vehicle.registration_number %></strong></td>
-              <td data-label="Make & Model"><%= "#{vehicle.make} #{vehicle.model}" %></td>
-              <td data-label="Year"><%= vehicle.year %></td>
-              <td data-label="Status">
-                <span class="badge <%= vehicle.status_badge_class %>">
+              <td><span class="veh-reg"><%= vehicle.registration_number %></span></td>
+              <td><span class="veh-make"><%= vehicle.make %> <%= vehicle.model %></span></td>
+              <td style="color: var(--ink-3); font-size: 0.75rem;"><%= vehicle.year %></td>
+              <td>
+                <span class="veh-badge <%= vehicle.status %>">
                   <%= vehicle.status.titleize %>
                 </span>
               </td>
-              <td data-label="Revenue" class="positive"><%= number_to_currency(vehicle.total_sales) %></td>
-              <td data-label="Expenses" class="negative"><%= number_to_currency(vehicle.total_expenses) %></td>
-              <td data-label="Profit" class="<%= vehicle.profit >= 0 ? 'positive' : 'negative' %>">
-                <%= number_to_currency(vehicle.profit) %>
-              </td>
-              <td data-label="Margin">
-                <span class="<%= vehicle.profit_margin >= 0 ? 'positive' : 'negative' %>">
-                  <%= vehicle.profit_margin %>%
+              <td><span class="veh-amount-pos"><%= number_to_currency(vehicle.total_sales) %></span></td>
+              <td><span class="veh-amount-neg"><%= number_to_currency(vehicle.total_expenses) %></span></td>
+              <td>
+                <span class="<%= vehicle.profit >= 0 ? 'veh-amount-pos' : 'veh-amount-neg' %>">
+                  <%= number_to_currency(vehicle.profit) %>
                 </span>
               </td>
-              <td data-label="Actions" style="white-space: nowrap;">
-                <%= link_to "View", vehicle, class: "btn btn-secondary btn-sm" %>
-                <%= link_to "Edit", edit_vehicle_path(vehicle), class: "btn btn-secondary btn-sm" %>
+              <td style="min-width: 120px;">
+                <% margin = vehicle.total_sales > 0 ? [[((vehicle.profit / vehicle.total_sales.to_f) * 100).round, 100].min, 0].max : 0 %>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <div class="veh-progress">
+                    <div class="veh-progress-fill <%= vehicle.profit >= 0 ? 'pos' : 'neg' %>"
+                         style="width: <%= margin %>%;"></div>
+                  </div>
+                  <span style="font-size: 0.65rem; color: var(--ink-3); white-space: nowrap;">
+                    <%= vehicle.profit_margin %>%
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="veh-actions">
+                  <%= link_to "View", vehicle, class: "veh-act" %>
+                  <%= link_to "Edit", edit_vehicle_path(vehicle), class: "veh-act" %>
+                </div>
               </td>
             </tr>
           <% end %>
         </tbody>
       </table>
-    </div>
-    
-    <% if @vehicles.empty? %>
-      <div style="text-align: center; padding: 3rem; color: #64748b;">
-        No vehicles found. <%= link_to "Add your first vehicle", new_vehicle_path %>.
+    <% end %>
+
+    <% if @vehicles.respond_to?(:total_entries) && @vehicles.total_entries > 0 %>
+      <div class="veh-pagination">
+        <span>
+          <% if @vehicles.total_pages > 1 %>
+            <%= @vehicles.offset + 1 %>–<%= [@vehicles.offset + @vehicles.length, @vehicles.total_entries].min %> of <%= @vehicles.total_entries %> vehicles
+          <% else %>
+            All <%= @vehicles.total_entries %> vehicles
+          <% end %>
+        </span>
+        <% if @vehicles.total_pages > 1 %>
+          <%= will_paginate @vehicles,
+                renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+                previous_label: '←',
+                next_label: '→',
+                class: 'pagination' %>
+        <% end %>
       </div>
     <% end %>
   </div>
-</div>
 
-<!-- Pagination -->
-<% if @vehicles.total_entries > 0 %>
-  <div style="margin-top: 1.5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div style="font-size: 0.75rem; color: #64748b;">
-        <% if @vehicles.total_pages > 1 %>
-          <%= @vehicles.offset + 1 %> - <%= [@vehicles.offset + @vehicles.length, @vehicles.total_entries].min %> of <%= @vehicles.total_entries %> vehicles
-        <% else %>
-          All <%= @vehicles.total_entries %> vehicles
-        <% end %>
+  <!-- ── MOBILE CARDS ── -->
+  <div class="veh-mobile">
+    <% @vehicles.each_with_index do |vehicle, i| %>
+      <div class="veh-card" style="animation-delay: <%= i * 0.04 %>s;">
+        <div class="veh-card-head">
+          <span class="veh-card-reg"><%= vehicle.registration_number %></span>
+          <span class="veh-badge <%= vehicle.status %>"><%= vehicle.status.titleize %></span>
+        </div>
+        <div class="veh-card-body">
+          <div class="veh-card-grid">
+            <span class="veh-card-key">Make</span>
+            <span><%= vehicle.make %> <%= vehicle.model %> (<%= vehicle.year %>)</span>
+
+            <span class="veh-card-key">Revenue</span>
+            <span class="veh-amount-pos"><%= number_to_currency(vehicle.total_sales) %></span>
+
+            <span class="veh-card-key">Expenses</span>
+            <span class="veh-amount-neg"><%= number_to_currency(vehicle.total_expenses) %></span>
+
+            <span class="veh-card-key">Profit</span>
+            <span class="<%= vehicle.profit >= 0 ? 'veh-amount-pos' : 'veh-amount-neg' %>">
+              <%= number_to_currency(vehicle.profit) %>
+            </span>
+
+            <span class="veh-card-key">Margin</span>
+            <span style="font-size: 0.75rem;"><%= vehicle.profit_margin %>%</span>
+          </div>
+
+          <div class="veh-card-actions">
+            <%= link_to "View", vehicle, class: "veh-act" %>
+            <%= link_to "Edit", edit_vehicle_path(vehicle), class: "veh-act" %>
+          </div>
+        </div>
       </div>
-      
-      <% if @vehicles.total_pages > 1 %>
-        <%= will_paginate @vehicles, 
+    <% end %>
+
+    <% if @vehicles.empty? %>
+      <div class="veh-empty">
+        <div class="veh-empty-icon">🚛</div>
+        <p>No vehicles found.</p>
+        <%= link_to "Add your first vehicle →", new_vehicle_path, class: "veh-btn veh-btn-primary" %>
+      </div>
+    <% end %>
+
+    <% if @vehicles.respond_to?(:total_entries) && @vehicles.total_entries > 0 && @vehicles.total_pages > 1 %>
+      <div style="padding: 0.5rem 0;">
+        <%= will_paginate @vehicles,
               renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
               previous_label: '←',
               next_label: '→',
               class: 'pagination' %>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   </div>
-<% end %>
+
+</div>

@@ -1,76 +1,536 @@
-<div class="page-header">
-  <h1>Products</h1>
-  <p>Manage your products and pricing</p>
-</div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
-<!-- Compact Stats Bar -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Total Products</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @total_products %></div>
-      </div>
-      <div style="font-size: 1.5rem;">📦</div>
-    </div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Active</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @active_products %></div>
-      </div>
-      <div style="font-size: 1.5rem;">✅</div>
-    </div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #64748b;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Inactive</div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: #1e293b;"><%= @inactive_products %></div>
-      </div>
-      <div style="font-size: 1.5rem;">📋</div>
-    </div>
-  </div>
-  
-  <div style="background: white; border-radius: 0.5rem; padding: 0.75rem 1rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 3px solid #10b981;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <div>
-        <div style="font-size: 0.7rem; color: #64748b;">Total Revenue</div>
-        <div style="font-size: 1rem; font-weight: 700; color: #10b981;"><%= number_to_currency(@total_revenue) %></div>
-      </div>
-      <div style="font-size: 1.5rem;">💰</div>
-    </div>
-  </div>
-</div>
+  :root {
+    --ink:     #0f1117;
+    --ink-2:   #2a2d38;
+    --ink-3:   #5c6070;
+    --paper:   #f7f6f2;
+    --surface: #ffffff;
+    --border:  #e4e2da;
+    --green:   #1a9e6e;
+    --green-l: #e8f7f2;
+    --red:     #d63d2f;
+    --red-l:   #fdf0ee;
+    --amber:   #c07b1a;
+    --amber-l: #fef6e7;
+    --blue:    #2563eb;
+    --blue-l:  #eff4ff;
+  }
 
-<!-- Search and Filter Bar -->
-<div style="margin-bottom: 1.5rem;">
-  <%= form_tag products_path, method: :get, style: "display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;" do %>
-    <%= text_field_tag :search, params[:search], placeholder: "Search by name or description...", class: "form-control", style: "flex: 1; min-width: 150px;" %>
-    <%= select_tag :status, options_for_select([["All Products", ""], ["Active", "active"], ["Inactive", "inactive"]], params[:status]), class: "form-control", style: "width: auto; min-width: 120px;" %>
-    
-    <div style="display: flex; align-items: center; gap: 0.5rem;">
-      <span style="font-size: 0.75rem; color: #64748b;">Show:</span>
-      <%= select_tag :per_page, options_for_select([10, 20, 50], params[:per_page] || 10), class: "form-control", style: "width: auto; min-width: 65px;", onchange: "this.form.submit()" %>
+  .pl-wrap {
+    font-family: 'Inconsolata', monospace;
+    background: var(--paper);
+    min-height: 100vh;
+    padding: 2rem 2rem 3rem;
+    color: var(--ink);
+  }
+
+  /* ── Header ── */
+  .pl-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1.5px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .pl-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.3rem;
+  }
+
+  .pl-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .pl-title span { color: var(--green); }
+
+  .pl-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ── Buttons ── */
+  .pl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.9rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .pl-btn-primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  .pl-btn-primary:hover {
+    background: var(--ink-2);
+    box-shadow: 2px 2px 0 var(--green);
+    transform: translate(-1px,-1px);
+    color: #fff;
+  }
+
+  .pl-btn-ghost {
+    background: transparent;
+    color: var(--ink-3);
+    border-color: var(--border);
+  }
+
+  .pl-btn-ghost:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+    background: var(--surface);
+  }
+
+  /* ── Stat Cards ── */
+  .pl-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .pl-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.9rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: statIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .pl-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+
+  .pl-stat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .pl-stat.green::before { background: var(--green); }
+  .pl-stat.amber::before { background: var(--amber); }
+  .pl-stat.blue::before  { background: var(--blue); }
+  .pl-stat.ink::before   { background: var(--ink-2); }
+
+  .pl-stat-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.3rem;
+  }
+
+  .pl-stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .pl-stat.green .pl-stat-value { color: var(--green); }
+  .pl-stat.amber .pl-stat-value { color: var(--amber); }
+  .pl-stat.blue  .pl-stat-value  { color: var(--blue); }
+  .pl-stat.ink   .pl-stat-value  { color: var(--ink); }
+
+  .pl-stat:nth-child(1) { animation-delay: 0.04s; }
+  .pl-stat:nth-child(2) { animation-delay: 0.08s; }
+  .pl-stat:nth-child(3) { animation-delay: 0.12s; }
+  .pl-stat:nth-child(4) { animation-delay: 0.16s; }
+
+  @keyframes statIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Filter bar ── */
+  .pl-filters {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .pl-input {
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .pl-input:focus {
+    border-color: var(--ink-2);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(15,17,23,0.07);
+  }
+
+  .pl-input-search { flex: 1; min-width: 180px; }
+  .pl-input-select { min-width: 120px; }
+
+  .pl-filter-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .pl-filter-sep { flex: 1; }
+
+  /* ── Panel ── */
+  .pl-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .pl-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .pl-panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  /* ── Table ── */
+  .pl-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+
+  .pl-table thead tr {
+    background: var(--paper);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .pl-table th {
+    text-align: left;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .pl-table td {
+    padding: 0.7rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .pl-table tbody tr:last-child td { border-bottom: none; }
+  .pl-table tbody tr { transition: background 0.12s; }
+  .pl-table tbody tr:hover { background: var(--paper); }
+
+  .text-green { color: var(--green); font-weight: 500; }
+  .text-red   { color: var(--red);   font-weight: 500; }
+
+  /* ── Badges ── */
+  .pl-badge {
+    display: inline-block;
+    padding: 0.18rem 0.5rem;
+    border-radius: 2px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pl-badge.active   { background: var(--green-l); color: var(--green); }
+  .pl-badge.inactive { background: var(--border);  color: var(--ink-3); }
+
+  /* ── Action buttons ── */
+  .pl-action-group { display: flex; gap: 0.35rem; }
+
+  .pl-act {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.6rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--ink-3);
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+
+  .pl-act:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
+
+  .pl-act.primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+
+  .pl-act.primary:hover { background: var(--ink-2); color: #fff; }
+
+  .pl-act.warning {
+    background: var(--amber-l);
+    color: var(--amber);
+    border-color: var(--amber);
+  }
+
+  .pl-act.warning:hover { background: var(--amber); color: #fff; }
+
+  .pl-act.success {
+    background: var(--green-l);
+    color: var(--green);
+    border-color: var(--green);
+  }
+
+  .pl-act.success:hover { background: var(--green); color: #fff; }
+
+  /* ── Empty state ── */
+  .pl-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ink-3);
+  }
+
+  .pl-empty-icon {
+    font-size: 2.5rem;
+    opacity: 0.3;
+    margin-bottom: 0.75rem;
+  }
+
+  .pl-empty p {
+    font-size: 0.8rem;
+    margin: 0 0 0.5rem;
+  }
+
+  /* ── Pagination ── */
+  .pl-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.85rem 1.1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--ink-3);
+  }
+
+  .pl-pagination .pagination {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .pl-pagination .pagination li a,
+  .pl-pagination .pagination li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 0.4rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    text-decoration: none;
+    color: var(--ink-3);
+    transition: all 0.12s;
+  }
+
+  .pl-pagination .pagination li a:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
+  .pl-pagination .pagination li.active span { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .pl-pagination .pagination li.disabled span { opacity: 0.4; }
+
+  /* ── Mobile cards ── */
+  .pl-mobile { display: none; }
+
+  .pl-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    animation: statIn 0.35s ease both;
+  }
+
+  .pl-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.65rem 1rem;
+    background: var(--paper);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pl-card-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+
+  .pl-card-body { padding: 0.85rem 1rem; }
+
+  .pl-card-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .pl-card-key {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    padding-top: 1px;
+  }
+
+  .pl-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .pl-card-actions .pl-act { flex: 1; justify-content: center; }
+
+  @media (max-width: 768px) {
+    .pl-wrap    { padding: 1rem; }
+    .pl-title   { font-size: 1.5rem; }
+    .pl-desktop { display: none; }
+    .pl-mobile  { display: block; }
+    .pl-header-actions .pl-btn span { display: none; }
+  }
+</style>
+
+<div class="pl-wrap">
+
+  <!-- Header -->
+  <div class="pl-header">
+    <div>
+      <p class="pl-eyebrow">Fleet Management</p>
+      <h1 class="pl-title">Product <span>Catalogue</span></h1>
     </div>
-    
-    <%= submit_tag "Filter", class: "btn btn-primary btn-sm" %>
-    <%= link_to "Clear", products_path, class: "btn btn-secondary btn-sm" %>
-    <%= link_to "+ Add Product", new_product_path, class: "btn btn-primary btn-sm" %>
+    <div class="pl-header-actions">
+      <%= link_to new_product_path, class: "pl-btn pl-btn-primary" do %>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Add Product
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="pl-stats">
+    <div class="pl-stat ink">
+      <div class="pl-stat-label">Total Products</div>
+      <div class="pl-stat-value"><%= @total_products %></div>
+    </div>
+    <div class="pl-stat green">
+      <div class="pl-stat-label">Active</div>
+      <div class="pl-stat-value"><%= @active_products %></div>
+    </div>
+    <div class="pl-stat amber">
+      <div class="pl-stat-label">Inactive</div>
+      <div class="pl-stat-value"><%= @inactive_products %></div>
+    </div>
+    <div class="pl-stat green">
+      <div class="pl-stat-label">Total Revenue</div>
+      <div class="pl-stat-value"><%= number_to_currency(@total_revenue) %></div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <%= form_tag products_path, method: :get, class: "pl-filters" do %>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ink-3); flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <%= text_field_tag :search, params[:search], placeholder: "Search by name or description…", class: "pl-input pl-input-search" %>
+    <%= select_tag :status, options_for_select([["All Status", ""], ["Active", "active"], ["Inactive", "inactive"]], params[:status]), class: "pl-input pl-input-select" %>
+    <span class="pl-filter-label">Show</span>
+    <%= select_tag :per_page, options_for_select([10, 20, 50], params[:per_page] || 10), class: "pl-input", style: "width: 70px;", onchange: "this.form.submit()" %>
+    <span class="pl-filter-sep"></span>
+    <%= submit_tag "Filter", class: "pl-btn pl-btn-primary" %>
+    <%= link_to "Clear", products_path, class: "pl-btn pl-btn-ghost" %>
   <% end %>
-</div>
 
-<!-- Products Table -->
-<div class="card">
-  <div class="card-header">
-    <h3>All Products</h3>
-  </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="data-table">
+  <!-- ── DESKTOP TABLE ── -->
+  <div class="pl-panel pl-desktop">
+    <div class="pl-panel-head">
+      <h3 class="pl-panel-title">All Products</h3>
+    </div>
+
+    <% if @products.empty? %>
+      <div class="pl-empty">
+        <div class="pl-empty-icon">📦</div>
+        <p>No products found.</p>
+        <%= link_to "Add your first product →", new_product_path, class: "pl-btn pl-btn-primary" %>
+      </div>
+    <% else %>
+      <table class="pl-table">
         <thead>
           <tr>
             <th>Name</th>
@@ -80,65 +540,118 @@
             <th>Sales</th>
             <th>Revenue</th>
             <th>Status</th>
-            <th style="width: 120px;">Actions</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <% @products.each do |product| %>
             <tr>
-              <td data-label="Name"><strong><%= product.name %></strong></td>
-              <td data-label="Description"><%= truncate(product.description, length: 50) %></td>
-              <td data-label="Unit"><%= product.unit %></td>
-              <td data-label="Price" class="positive"><%= number_to_currency(product.price) %></td>
-              <td data-label="Sales"><%= product.total_sales_count %></td>
-              <td data-label="Revenue" class="positive"><%= number_to_currency(product.total_revenue) %></td>
-              <td data-label="Status">
-                <span class="badge <%= product.active? ? 'badge-paid' : 'badge-inactive' %>">
+              <td><strong><%= product.name %></strong></td>
+              <td style="color: var(--ink-3);"><%= truncate(product.description, length: 50) %></td>
+              <td><%= product.unit %></td>
+              <td class="text-green"><%= number_to_currency(product.price) %></td>
+              <td><%= product.total_sales_count %></td>
+              <td class="text-green"><%= number_to_currency(product.total_revenue) %></td>
+              <td>
+                <span class="pl-badge <%= product.active? ? 'active' : 'inactive' %>">
                   <%= product.active? ? 'Active' : 'Inactive' %>
                 </span>
               </td>
-              <td data-label="Actions" style="white-space: nowrap;">
-                <%= link_to "View", product, class: "btn btn-secondary btn-sm" %>
-                <%= link_to "Edit", edit_product_path(product), class: "btn btn-secondary btn-sm" %>
-                <% if product.active? %>
-                  <%= link_to "Deactivate", toggle_status_product_path(product), method: :patch, class: "btn btn-warning btn-sm", data: { confirm: "Deactivate this product? It will no longer appear in sales forms." } %>
-                <% else %>
-                  <%= link_to "Activate", toggle_status_product_path(product), method: :patch, class: "btn btn-success btn-sm", data: { confirm: "Activate this product?" } %>
-                <% end %>
+              <td>
+                <div class="pl-action-group">
+                  <%= link_to "View", product, class: "pl-act" %>
+                  <%= link_to "Edit", edit_product_path(product), class: "pl-act" %>
+                  <% if product.active? %>
+                    <%= link_to "Deactivate", toggle_status_product_path(product), method: :patch, class: "pl-act warning", data: { confirm: "Deactivate this product? It will no longer appear in sales forms." } %>
+                  <% else %>
+                    <%= link_to "Activate", toggle_status_product_path(product), method: :patch, class: "pl-act success", data: { confirm: "Activate this product?" } %>
+                  <% end %>
+                </div>
               </td>
             </tr>
           <% end %>
         </tbody>
       </table>
-    </div>
-    
-    <% if @products.empty? %>
-      <div style="text-align: center; padding: 3rem; color: #64748b;">
-        No products found. <%= link_to "Add your first product", new_product_path %>.
+    <% end %>
+
+    <% if @products.total_entries > 0 %>
+      <div class="pl-pagination">
+        <span>
+          <% if @products.total_pages > 1 %>
+            <%= @products.offset + 1 %>–<%= [@products.offset + @products.length, @products.total_entries].min %> of <%= @products.total_entries %> products
+          <% else %>
+            All <%= @products.total_entries %> products
+          <% end %>
+        </span>
+        <% if @products.total_pages > 1 %>
+          <%= will_paginate @products,
+                renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+                previous_label: '←',
+                next_label: '→',
+                class: 'pagination' %>
+        <% end %>
       </div>
     <% end %>
   </div>
-</div>
 
-<!-- Pagination -->
-<% if @products.total_entries > 0 %>
-  <div style="margin-top: 1.5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div style="font-size: 0.75rem; color: #64748b;">
-        <% if @products.total_pages > 1 %>
-          <%= @products.offset + 1 %> - <%= [@products.offset + @products.length, @products.total_entries].min %> of <%= @products.total_entries %> products
-        <% else %>
-          All <%= @products.total_entries %> products
-        <% end %>
+  <!-- ── MOBILE CARDS ── -->
+  <div class="pl-mobile">
+    <% @products.each_with_index do |product, i| %>
+      <div class="pl-card" style="animation-delay: <%= i * 0.04 %>s;">
+        <div class="pl-card-head">
+          <span class="pl-card-name"><%= product.name %></span>
+          <span class="pl-badge <%= product.active? ? 'active' : 'inactive' %>">
+            <%= product.active? ? 'Active' : 'Inactive' %>
+          </span>
+        </div>
+        <div class="pl-card-body">
+          <div class="pl-card-grid">
+            <span class="pl-card-key">Description</span>
+            <span style="color: var(--ink-3);"><%= truncate(product.description, length: 60) %></span>
+
+            <span class="pl-card-key">Unit</span>
+            <span><%= product.unit %></span>
+
+            <span class="pl-card-key">Price</span>
+            <span class="text-green"><%= number_to_currency(product.price) %></span>
+
+            <span class="pl-card-key">Sales</span>
+            <span><%= product.total_sales_count %></span>
+
+            <span class="pl-card-key">Revenue</span>
+            <span class="text-green"><%= number_to_currency(product.total_revenue) %></span>
+          </div>
+
+          <div class="pl-card-actions">
+            <%= link_to "View", product, class: "pl-act" %>
+            <%= link_to "Edit", edit_product_path(product), class: "pl-act" %>
+            <% if product.active? %>
+              <%= link_to "Deactivate", toggle_status_product_path(product), method: :patch, class: "pl-act warning", data: { confirm: "Deactivate this product?" } %>
+            <% else %>
+              <%= link_to "Activate", toggle_status_product_path(product), method: :patch, class: "pl-act success", data: { confirm: "Activate this product?" } %>
+            <% end %>
+          </div>
+        </div>
       </div>
-      
-      <% if @products.total_pages > 1 %>
-        <%= will_paginate @products, 
+    <% end %>
+
+    <% if @products.empty? %>
+      <div class="pl-empty">
+        <div class="pl-empty-icon">📦</div>
+        <p>No products found.</p>
+        <%= link_to "Add your first product →", new_product_path, class: "pl-btn pl-btn-primary" %>
+      </div>
+    <% end %>
+
+    <% if @products.total_entries > 0 && @products.total_pages > 1 %>
+      <div style="padding: 0.5rem 0;">
+        <%= will_paginate @products,
               renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
               previous_label: '←',
               next_label: '→',
               class: 'pagination' %>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   </div>
-<% end %>
+
+</div>

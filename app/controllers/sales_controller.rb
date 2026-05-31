@@ -13,7 +13,29 @@ class SalesController < ApplicationController
     # Role-based filtering
     if current_user.driver?
       # Drivers can only see their own sales
-      @sales = Sale.where(user_id: current_user.id)
+      sales_scope = Sale.where(user_id: current_user.id)
+      
+      # Get total counts before pagination
+      @total_sales = sales_scope.sum(:total_amount)
+      @outstanding_sales = sales_scope.outstanding.sum(:total_amount)
+      @sales_total_count = sales_scope.count
+      @sales_outstanding_count = sales_scope.outstanding.count
+      
+      # Apply search filter if present
+      if params[:search].present?
+        sales_scope = sales_scope.where("customer_name LIKE ? OR transaction_id LIKE ?", 
+                                        "%#{params[:search]}%", "%#{params[:search]}%")
+      end
+      
+      # Apply status filter if present
+      if params[:status].present?
+        sales_scope = sales_scope.where(payment_status: params[:status])
+      end
+      
+      # Apply pagination
+      @sales = sales_scope.includes(:user, :vehicle, :product)
+                          .order(created_at: :desc)
+                          .paginate(page: params[:page], per_page: @per_page)
       
       # Render driver-specific view
       render :driver_index and return
