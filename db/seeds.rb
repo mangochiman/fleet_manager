@@ -31,14 +31,12 @@ puts "✓ Created #{Vehicle.count} vehicles"
 # Create products - Construction Materials for Tipper Trucks
 puts "Creating products..."
 products = [
-  { name: 'Sharp Sand',      description: 'Quality building sand for construction',          price: 35000.00, unit: 'tons', active: true },
-  { name: 'Ballast (3/4")',  description: 'Crushed stone for concrete and road construction', price: 50000.00, unit: 'tons', active: true },
-  { name: 'Ballast (1/2")',  description: 'Small crushed stone for fine concrete work',       price: 45000.00, unit: 'tons', active: true },
-  { name: 'Hardcore',        description: 'Base material for roads and foundation',           price: 40000.00, unit: 'tons', active: true },
-  { name: 'Quarry Dust',     description: 'Fine material for block making and plastering',    price: 25000.00, unit: 'tons', active: true },
-  { name: 'Red Soil',        description: 'Fill material for landscaping and site preparation', price: 18000.00, unit: 'tons', active: true },
-  { name: 'Aggregate (20mm)', description: 'General purpose construction aggregate',          price: 48000.00, unit: 'tons', active: true },
-  { name: 'Aggregate (10mm)', description: 'Small aggregate for concrete finishing',          price: 52000.00, unit: 'tons', active: true }
+  { name: 'Sand', description: 'Sand', price: 280000, unit: 'tons', active: true },
+  { name: 'All quarries',  description: 'All quarries', price: 200000, unit: 'tons', active: true },
+  { name: 'Bricks',  description: 'Bricks', price: 200000, unit: 'tons', active: true },
+  { name: 'Blocks',  description: 'Blocks', price: 300000, unit: 'tons', active: true },
+  { name: 'Soil',     description: 'Soil', price: 200000, unit: 'tons', active: true },
+  { name: 'Sock ware', description: 'Sock ware', price: 250000, unit: 'tons', active: true }
 ]
 
 products.each { |attrs| Product.create!(attrs) }
@@ -86,29 +84,6 @@ manager = User.create!(
 
 puts "✓ Created manager user"
 
-# Create sample sales with construction materials
-puts "Creating sample sales..."
-products_list = Product.all.to_a
-
-30.times do |i|
-  status = ['outstanding', 'paid', 'banked'].sample
-  selected_product = products_list.sample
-  quantity = rand(5..30)
-
-  Sale.create!(
-    user: [admin, driver, manager].sample,
-    vehicle: [vehicle1, vehicle2].sample,
-    product: selected_product,
-    customer_name: "Customer #{i + 1}",
-    customer_phone: "+265#{rand(100_000_000..999_999_999)}",
-    quantity: quantity,
-    unit_price: selected_product.price,
-    total_amount: selected_product.price * quantity,
-    transaction_date: rand(1..60).days.ago,
-    payment_status: status
-  )
-end
-
 puts "✓ Created #{Sale.count} sample sales"
 
 # Create sample expenses
@@ -122,19 +97,6 @@ descriptions = [
   'Driver monthly salary',
   'Miscellaneous expenses'
 ]
-
-15.times do
-  Expense.create!(
-    vehicle: [vehicle1, vehicle2].sample,
-    category: expense_categories.sample,
-    amount: rand(1000..50000),
-    expense_date: rand(1..60).days.ago,
-    description: descriptions.sample,
-    recorded_by: admin
-  )
-end
-
-puts "✓ Created #{Expense.count} sample expenses"
 
 puts "\n" + "=" * 50
 puts "✅ SEED COMPLETED SUCCESSFULLY!"

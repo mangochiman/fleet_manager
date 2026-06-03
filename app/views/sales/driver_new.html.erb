@@ -1,0 +1,102 @@
+<div class="page-header">
+  <h1>Lowesani za trip yanu</h1>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Trip Details</h3>
+  </div>
+  <div class="card-body">
+    <%= form_with(model: @sale, url: sales_path, class: "form") do |f| %>
+      <% if @sale.errors.any? %>
+        <div class="alert alert-danger">
+          <h4><%= pluralize(@sale.errors.count, "error") %> prohibited this trip from being saved:</h4>
+          <ul>
+            <% @sale.errors.full_messages.each do |msg| %>
+              <li><%= msg %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      
+      <!-- Display assigned vehicle (read-only) -->
+      <div class="form-group">
+        <label>Zokhuza galimoto yanu </label>
+        <div class="form-control" style="background-color: #f1f5f9; cursor: not-allowed;">
+          <%= @vehicles.first&.display_name || 'No vehicle assigned' %>
+        </div>
+        <small style="color: #64748b;"></small>
+      </div>
+      
+      <div class="grid grid-2">
+        <div class="form-group">
+          <%= f.label :customer_name, "Dzina la kasitomala *" %>
+          <%= f.text_field :customer_name, class: "form-control", placeholder: "", required: true %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :customer_phone, "Phone ya kasitomala" %>
+          <%= f.telephone_field :customer_phone, class: "form-control", placeholder: "" %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :product_id, "Munyamula chani? *" %>
+          <%= f.collection_select :product_id, @products, :id, :name, 
+                { prompt: "Sankhani zokanyamula" }, 
+                { class: "form-control", required: true, id: "product_select" } %>
+        </div>
+        
+        <div class="form-group">
+          <%= f.label :quantity, "Ma trip angati? *" %>
+          <%= f.number_field :quantity, class: "form-control", step: "any", 
+                placeholder: "Enter quantity", required: true, id: "sale_quantity" %>
+          <small style="color: #64748b;"></small>
+        </div>
+        
+        <!-- Hidden field for unit_price (auto-populated) -->
+        <%= f.hidden_field :unit_price, id: "sale_unit_price" %>
+        
+        <div class="form-group">
+          <%= f.label :transaction_date, "Tsiku *" %>
+          <%= f.date_field :transaction_date, class: "form-control", value: Date.current, required: true %>
+        </div>
+        
+        <div class="form-group full-width">
+          <%= f.label :notes, "Fotokozani" %>
+          <%= f.text_area :notes, class: "form-control", rows: 3, placeholder: "" %>
+        </div>
+      </div>
+      
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <%= f.submit "Ndamaliza", class: "btn btn-primary" %>
+        <%= link_to "Cancel", sales_path, class: "btn btn-secondary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Product data with prices
+  const productPrices = {
+    <% @products.each do |product| %>
+      <%= product.id %>: <%= product.price %>,
+    <% end %>
+  };
+  
+  const productSelect = document.getElementById('product_select');
+  const unitPriceInput = document.getElementById('sale_unit_price');
+  
+  function updateUnitPrice() {
+    const productId = productSelect.value;
+    if (productId && productPrices[productId]) {
+      unitPriceInput.value = productPrices[productId];
+    }
+  }
+  
+  if (productSelect) {
+    productSelect.addEventListener('change', updateUnitPrice);
+    if (productSelect.value) {
+      updateUnitPrice();
+    }
+  }
+</script>

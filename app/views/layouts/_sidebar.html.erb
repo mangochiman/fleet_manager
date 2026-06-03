@@ -8,16 +8,18 @@
   </div>
   
   <nav class="sidebar-nav">
-    <!-- Dashboard - Everyone can see -->
-    <%= link_to dashboard_path, class: "nav-link #{'active' if current_page?(dashboard_path) || current_page?(root_path)}" do %>
-      <span class="nav-icon">📊</span>
-      <span>Dashboard</span>
+    <!-- Dashboard - Only show for non-drivers -->
+    <% unless current_user.driver? %>
+      <%= link_to dashboard_path, class: "nav-link #{'active' if current_page?(dashboard_path) || current_page?(root_path)}" do %>
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      <% end %>
     <% end %>
     
-    <!-- Sales - Everyone can see -->
+    <!-- Sales/Trips - Everyone can see (different label for drivers) -->
     <%= link_to sales_path, class: "nav-link #{'active' if controller_name == 'sales'}" do %>
       <span class="nav-icon">💰</span>
-      <span>Sales</span>
+      <span><%= current_user.driver? ? 'My Trips' : 'Sales' %></span>
     <% end %>
     
     <!-- Expenses - Only Admins, Managers, and Super Admins -->

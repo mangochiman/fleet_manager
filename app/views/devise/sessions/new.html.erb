@@ -16,57 +16,21 @@
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    /* Animated background shapes */
-    body::before {
-      content: '';
-      position: absolute;
-      width: 200px;
-      height: 200px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      top: -100px;
-      right: -100px;
-      animation: float 20s infinite ease-in-out;
-    }
-
-    body::after {
-      content: '';
-      position: absolute;
-      width: 300px;
-      height: 300px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 50%;
-      bottom: -150px;
-      left: -150px;
-      animation: float 15s infinite ease-in-out reverse;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(20px, 20px); }
-    }
-
-    .container {
-      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 1rem;
-      position: relative;
-      z-index: 1;
     }
 
-    .login-wrapper {
-      display: flex;
-      max-width: 1300px;
+    .login-container {
       width: 100%;
+      max-width: 400px;
+    }
+
+    .login-card {
       background: white;
-      border-radius: 2rem;
-      overflow: hidden;
+      border-radius: 1.5rem;
+      padding: 2rem;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
       animation: slideUp 0.6s ease-out;
     }
@@ -82,92 +46,35 @@
       }
     }
 
-    /* Left side - Branding */
-    .brand-side {
-      flex: 1;
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .brand-side::before {
-      content: '🚛';
-      position: absolute;
-      font-size: 15rem;
-      opacity: 0.05;
-      bottom: -5rem;
-      right: -5rem;
-      pointer-events: none;
-    }
-
     .logo {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .brand-side h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      color: white;
-      margin-bottom: 1rem;
-      line-height: 1.2;
-    }
-
-    .brand-side p {
-      color: #94a3b8;
-      font-size: 0.875rem;
-      line-height: 1.6;
-      margin-bottom: 1.5rem;
-    }
-
-    .features {
-      list-style: none;
-      margin-top: 1rem;
-    }
-
-    .features li {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.75rem;
-      color: #cbd5e1;
-      font-size: 0.8rem;
-    }
-
-    .features li span {
-      font-size: 1rem;
-    }
-
-    /* Right side - Login Form */
-    .form-side {
-      flex: 1;
-      padding: 2rem;
-      background: white;
-    }
-
-    .form-header {
       text-align: center;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
-    .form-header h2 {
+    .logo img {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      object-fit: cover;
+    }
+
+    h1 {
+      text-align: center;
       font-size: 1.5rem;
       font-weight: 700;
       color: #1e293b;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.5rem;
     }
 
-    .form-header p {
-      color: #64748b;
+    .subtitle {
+      text-align: center;
       font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 2rem;
     }
 
     .form-group {
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
     }
 
     .form-group label {
@@ -192,10 +99,10 @@
 
     .form-control {
       width: 100%;
-      padding: 0.7rem 1rem 0.7rem 2.5rem;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
       border: 1px solid #e2e8f0;
-      border-radius: 0.5rem;
-      font-size: 0.8rem;
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
       transition: all 0.2s;
       background: #f8fafc;
     }
@@ -211,9 +118,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+      margin-bottom: 1.5rem;
     }
 
     .checkbox-label {
@@ -226,8 +131,8 @@
     }
 
     .checkbox-label input {
-      width: 0.9rem;
-      height: 0.9rem;
+      width: 1rem;
+      height: 1rem;
       cursor: pointer;
     }
 
@@ -244,12 +149,12 @@
 
     .btn-login {
       width: 100%;
-      padding: 0.7rem;
+      padding: 0.75rem;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
-      border-radius: 0.5rem;
-      font-size: 0.8rem;
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
@@ -266,74 +171,9 @@
       }
     }
 
-    /* Demo Credentials Section */
-    .demo-credentials {
-      margin-top: 1.5rem;
-      background: #f1f5f9;
-      border-radius: 0.75rem;
-      overflow: hidden;
-    }
-
-    .demo-header {
-      background: #e2e8f0;
-      padding: 0.75rem;
-      text-align: center;
-      font-weight: 600;
-      font-size: 0.8rem;
-      color: #1e293b;
-    }
-
-    .credential-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.6rem 1rem;
-      border-bottom: 1px solid #e2e8f0;
-      font-size: 0.75rem;
-    }
-
-    .credential-row:last-child {
-      border-bottom: none;
-    }
-
-    .user-role {
-      font-weight: 700;
-      color: #667eea;
-      min-width: 90px;
-    }
-
-    .user-email {
-      font-family: monospace;
-      color: #1e293b;
-      flex: 1;
-      margin: 0 0.5rem;
-    }
-
-    .user-password {
-      font-family: monospace;
-      color: #64748b;
-      background: white;
-      padding: 0.2rem 0.5rem;
-      border-radius: 0.25rem;
-    }
-
-    .badge-role {
-      display: inline-block;
-      padding: 0.2rem 0.5rem;
-      border-radius: 0.25rem;
-      font-size: 0.65rem;
-      font-weight: 600;
-    }
-
-    .badge-super-admin { background: #8b5cf6; color: white; }
-    .badge-manager { background: #3b82f6; color: white; }
-    .badge-admin { background: #10b981; color: white; }
-    .badge-driver { background: #f59e0b; color: white; }
-
-    /* Alert messages */
     .alert {
-      padding: 0.7rem;
-      border-radius: 0.5rem;
+      padding: 0.75rem;
+      border-radius: 0.75rem;
       margin-bottom: 1rem;
       font-size: 0.8rem;
     }
@@ -343,155 +183,50 @@
       color: #991b1b;
       border: 1px solid #fecaca;
     }
-
-    /* Mobile Responsive */
-    @media (max-width: 900px) {
-      .login-wrapper {
-        flex-direction: column;
-        max-width: 95%;
-      }
-      
-      .brand-side {
-        padding: 1.5rem;
-        text-align: center;
-      }
-      
-      .features {
-        text-align: left;
-      }
-      
-      .form-side {
-        padding: 1.5rem;
-      }
-      
-      .credential-row {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-      
-      .user-role {
-        min-width: 70px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .form-side {
-        padding: 1rem;
-      }
-      
-      .credential-row {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .user-email {
-        margin: 0.25rem 0;
-      }
-    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="login-wrapper">
-      <!-- Left side - Branding -->
-      <div class="brand-side">
-        <div class="logo">🚛</div>
-        <h1>Fleet Management<br>System</h1>
-        <p>Complete solution for managing your fleet operations, driver sales, expenses, and profitability tracking.</p>
-        
-        <ul class="features">
-          <li><span>✓</span> Real-time tracking of sales & payments</li>
-          <li><span>✓</span> Vehicle expense management</li>
-          <li><span>✓</span> Profitability reports & analytics</li>
-          <li><span>✓</span> Export reports to PDF & Excel</li>
-          <li><span>✓</span> Outstanding payments monitoring</li>
-        </ul>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo">
+        <%= image_tag "app_icon.png", alt: "Fleet Manager Logo", style: "width: 80px; height: 80px; border-radius: 20px; object-fit: cover;" %>
       </div>
-      
-      <!-- Right side - Login Form -->
-      <div class="form-side">
-        <div class="form-header">
-          <h2>Welcome back</h2>
-          <p>Sign in to access your dashboard</p>
+      <h1>Fleet Manager</h1>
+      <p class="subtitle">Sign in to your account</p>
+
+      <% if flash[:alert] %>
+        <div class="alert alert-danger">
+          <%= flash[:alert] %>
         </div>
-        
-        <% if flash[:alert] %>
-          <div class="alert alert-danger">
-            <%= flash[:alert] %>
-          </div>
-        <% end %>
-        
-        <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { autocomplete: "off" }) do |f| %>
-          <div class="form-group">
-            <%= f.label :email %>
-            <div class="input-group">
-              <span class="input-icon">📧</span>
-              <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "Select an account from below", required: true %>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <%= f.label :password %>
-            <div class="input-group">
-              <span class="input-icon">🔒</span>
-              <%= f.password_field :password, autocomplete: "current-password", class: "form-control", placeholder: "Enter your password", required: true %>
-            </div>
-          </div>
-          
-          <div class="checkbox-group">
-            <label class="checkbox-label">
-              <%= f.check_box :remember_me %>
-              <span>Remember me</span>
-            </label>
-            <%#= link_to "Forgot password?", new_password_path(resource_name), class: "forgot-link" %>
-          </div>
-          
-          <%= f.submit "Sign in", class: "btn-login" %>
-        <% end %>
-        
-        <!-- Demo Credentials with All Accounts -->
-        <div class="demo-credentials">
-          <div class="demo-header">
-            📋 Test Accounts (All passwords: <code>password123</code>)
-          </div>
-          
-          <div class="credential-row">
-            <span class="user-role">
-              <span class="badge-role badge-super-admin">Super Admin</span>
-            </span>
-            <span class="user-email">admin@fleet.com</span>
-            <span class="user-password">•••••••••</span>
-          </div>
-          
-          <div class="credential-row">
-            <span class="user-role">
-              <span class="badge-role badge-manager">Manager</span>
-            </span>
-            <span class="user-email">manager@fleet.com</span>
-            <span class="user-password">•••••••••</span>
-          </div>
-          
-          <div class="credential-row">
-            <span class="user-role">
-              <span class="badge-role badge-admin">Admin</span>
-            </span>
-            <span class="user-email">admin@fleet.com</span>
-            <span class="user-password">•••••••••</span>
-          </div>
-          
-          <div class="credential-row">
-            <span class="user-role">
-              <span class="badge-role badge-driver">Driver</span>
-            </span>
-            <span class="user-email">driver@fleet.com</span>
-            <span class="user-password">•••••••••</span>
+      <% end %>
+
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { autocomplete: "off" }) do |f| %>
+        <div class="form-group">
+          <%= f.label :email %>
+          <div class="input-group">
+            <span class="input-icon">📧</span>
+            <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "admin@fleet.com", required: true %>
           </div>
         </div>
-        
-        <div style="text-align: center; margin-top: 1rem; font-size: 0.7rem; color: #94a3b8;">
-          <p>🔐 Default password for all accounts: <strong>password123</strong></p>
+
+        <div class="form-group">
+          <%= f.label :password %>
+          <div class="input-group">
+            <span class="input-icon">🔒</span>
+            <%= f.password_field :password, autocomplete: "current-password", class: "form-control", placeholder: "Enter your password", required: true %>
+          </div>
         </div>
-      </div>
+
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <%= f.check_box :remember_me %>
+            <span>Remember me</span>
+          </label>
+          <%#= link_to "Forgot password?", new_password_path(resource_name), class: "forgot-link" %>
+        </div>
+
+        <%= f.submit "Sign in", class: "btn-login" %>
+      <% end %>
     </div>
   </div>
 </body>

@@ -22,28 +22,26 @@
     font-family: 'Inconsolata', monospace;
     background: var(--paper);
     min-height: 100vh;
-    padding: 2rem 2rem 3rem;
+    padding: 1rem;
     color: var(--ink);
   }
 
   /* ── Header ── */
   .db-header {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 2rem;
-    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
     border-bottom: 1.5px solid var(--border);
     gap: 1rem;
     flex-wrap: wrap;
   }
 
-  .db-header-left {}
-
   .db-eyebrow {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 500;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--ink-3);
     margin: 0 0 0.3rem;
@@ -51,12 +49,12 @@
 
   .db-title {
     font-family: 'Syne', sans-serif;
-    font-size: 2rem;
-    font-weight: 800;
+    font-size: 1.25rem;
+    font-weight: 700;
     color: var(--ink);
     margin: 0;
-    line-height: 1;
-    letter-spacing: -0.03em;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
   }
 
   .db-title span {
@@ -64,34 +62,29 @@
   }
 
   .db-date {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
     color: var(--ink-3);
-    margin-top: 0.4rem;
-    letter-spacing: 0.04em;
+    margin-top: 0.3rem;
+    letter-spacing: 0.02em;
   }
 
   /* ── Stat Cards ── */
   .db-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.85rem;
-    margin-bottom: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
   }
 
   .db-stat {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 3px;
-    padding: 1rem 1.1rem;
+    padding: 0.75rem;
     position: relative;
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
     animation: statIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
-  }
-
-  .db-stat:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.07);
   }
 
   .db-stat::before {
@@ -107,27 +100,27 @@
   .db-stat.blue::before   { background: var(--blue); }
 
   .db-stat-label {
-    font-size: 0.62rem;
+    font-size: 0.55rem;
     font-weight: 500;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--ink-3);
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.25rem;
   }
 
   .db-stat-value {
     font-family: 'Syne', sans-serif;
-    font-size: 1.45rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--ink);
     letter-spacing: -0.02em;
     line-height: 1;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.3rem;
   }
 
   .db-stat-sub {
-    font-size: 0.62rem;
-    letter-spacing: 0.04em;
+    font-size: 0.55rem;
+    letter-spacing: 0.02em;
   }
 
   .db-stat.green  .db-stat-sub { color: var(--green); }
@@ -137,17 +130,12 @@
 
   .db-stat-icon {
     position: absolute;
-    right: 1rem;
+    right: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     opacity: 0.18;
   }
-
-  .db-stat:nth-child(1) { animation-delay: 0.05s; }
-  .db-stat:nth-child(2) { animation-delay: 0.10s; }
-  .db-stat:nth-child(3) { animation-delay: 0.15s; }
-  .db-stat:nth-child(4) { animation-delay: 0.20s; }
 
   @keyframes statIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -160,40 +148,40 @@
     border: 1px solid var(--border);
     border-radius: 3px;
     overflow: hidden;
+    margin-bottom: 0.85rem;
   }
 
   .db-panel-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.85rem 1.1rem;
+    padding: 0.7rem;
     border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .db-panel-title {
     font-family: 'Syne', sans-serif;
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--ink-2);
     margin: 0;
   }
 
   .db-panel-link {
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--green);
     text-decoration: none;
     font-weight: 500;
-    transition: opacity 0.15s;
   }
 
-  .db-panel-link:hover { opacity: 0.7; }
-
   .db-panel-body {
-    padding: 1.1rem;
+    padding: 0.85rem;
   }
 
   .db-panel-body.no-pad { padding: 0; }
@@ -201,7 +189,7 @@
   /* ── Charts row ── */
   .db-charts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: 1fr;
     gap: 0.85rem;
     margin-bottom: 0.85rem;
   }
@@ -209,13 +197,14 @@
   .db-chart-wrap {
     position: relative;
     width: 100%;
+    min-height: 200px;
   }
 
   /* ── Table shared ── */
   .db-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.78rem;
+    font-size: 0.7rem;
   }
 
   .db-table thead tr {
@@ -225,38 +214,63 @@
 
   .db-table th {
     text-align: left;
-    padding: 0.6rem 1.1rem;
-    font-size: 0.6rem;
+    padding: 0.5rem;
+    font-size: 0.55rem;
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-3);
     white-space: nowrap;
   }
 
   .db-table td {
-    padding: 0.65rem 1.1rem;
+    padding: 0.5rem;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
   }
 
   .db-table tbody tr:last-child td { border-bottom: none; }
+  .db-table tbody tr:hover { background: var(--paper); }
 
-  .db-table tbody tr {
-    transition: background 0.15s;
-  }
-
-  .db-table tbody tr:hover {
-    background: var(--paper);
+  /* Mobile card view for tables on small screens */
+  @media (max-width: 600px) {
+    .db-table thead {
+      display: none;
+    }
+    
+    .db-table tbody tr {
+      display: block;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+    
+    .db-table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .db-table td:last-child {
+      border-bottom: none;
+    }
+    
+    .db-table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: var(--ink-2);
+      margin-right: 1rem;
+      font-size: 0.55rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
   }
 
   /* ── Vehicle performance ── */
-  .db-vehicle { margin-bottom: 0.85rem; }
-
   .text-green  { color: var(--green); font-weight: 500; }
   .text-red    { color: var(--red);   font-weight: 500; }
-  .text-amber  { color: var(--amber); font-weight: 500; }
-  .text-ink    { color: var(--ink); }
   .text-mono   { font-family: 'Inconsolata', monospace; }
 
   /* Progress bar */
@@ -265,7 +279,7 @@
     background: var(--border);
     border-radius: 99px;
     overflow: hidden;
-    min-width: 80px;
+    min-width: 60px;
   }
 
   .db-progress-fill {
@@ -278,11 +292,11 @@
   /* ── Badge ── */
   .db-badge {
     display: inline-block;
-    padding: 0.2rem 0.5rem;
+    padding: 0.15rem 0.4rem;
     border-radius: 2px;
-    font-size: 0.62rem;
+    font-size: 0.55rem;
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
   }
 
@@ -294,14 +308,50 @@
   /* ── Two-col bottom ── */
   .db-bottom {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 0.85rem;
   }
 
-  @media (max-width: 700px) {
-    .db-bottom { grid-template-columns: 1fr; }
-    .db-title  { font-size: 1.5rem; }
-    .db-wrap   { padding: 1rem; }
+  /* Tablet and up */
+  @media (min-width: 768px) {
+    .db-wrap {
+      padding: 1.5rem;
+    }
+    
+    .db-title {
+      font-size: 1.5rem;
+    }
+    
+    .db-charts {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .db-bottom {
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    .db-stat-value {
+      font-size: 1.25rem;
+    }
+  }
+
+  /* Desktop */
+  @media (min-width: 1024px) {
+    .db-wrap {
+      padding: 2rem;
+    }
+    
+    .db-title {
+      font-size: 2rem;
+    }
+    
+    .db-stat-value {
+      font-size: 1.45rem;
+    }
+    
+    .db-stats {
+      grid-template-columns: repeat(4, 1fr);
+    }
   }
 </style>
 
@@ -378,34 +428,36 @@
       <h3 class="db-panel-title">Vehicle Performance</h3>
     </div>
     <div class="db-panel-body no-pad">
-      <table class="db-table">
-        <thead>
-          <tr>
-            <th>Vehicle</th>
-            <th>Revenue</th>
-            <th>Expenses</th>
-            <th>Profit</th>
-            <th>Margin</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @vehicle_performance.each do |vehicle| %>
+      <div class="table-responsive">
+        <table class="db-table">
+          <thead>
             <tr>
-              <td><strong class="text-mono"><%= vehicle[:name] %></strong></td>
-              <td class="text-green"><%= number_to_currency(vehicle[:sales]) %></td>
-              <td class="text-red"><%= number_to_currency(vehicle[:expenses]) %></td>
-              <td class="<%= vehicle[:profit] >= 0 ? 'text-green' : 'text-red' %>">
-                <%= number_to_currency(vehicle[:profit]) %>
-              </td>
-              <td style="min-width: 100px;">
-                <div class="db-progress">
-                  <div class="db-progress-fill" style="width: <%= vehicle[:profit] > 0 && vehicle[:sales] > 0 ? [((vehicle[:profit] / vehicle[:sales].to_f) * 100).round, 100].min : 0 %>%;"></div>
-                </div>
-              </td>
+              <th>Vehicle</th>
+              <th>Revenue</th>
+              <th>Expenses</th>
+              <th>Profit</th>
+              <th>Margin</th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% @vehicle_performance.each do |vehicle| %>
+              <tr>
+                <td data-label="Vehicle"><strong class="text-mono"><%= vehicle[:name] %></strong></td>
+                <td data-label="Revenue" class="text-green"><%= number_to_currency(vehicle[:sales]) %></td>
+                <td data-label="Expenses" class="text-red"><%= number_to_currency(vehicle[:expenses]) %></td>
+                <td data-label="Profit" class="<%= vehicle[:profit] >= 0 ? 'text-green' : 'text-red' %>">
+                  <%= number_to_currency(vehicle[:profit]) %>
+                </td>
+                <td data-label="Margin" style="min-width: 80px;">
+                  <div class="db-progress">
+                    <div class="db-progress-fill" style="width: <%= vehicle[:profit] > 0 && vehicle[:sales] > 0 ? [((vehicle[:profit] / vehicle[:sales].to_f) * 100).round, 100].min : 0 %>%;"></div>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -417,28 +469,30 @@
         <%= link_to "View All →", sales_path, class: "db-panel-link" %>
       </div>
       <div class="db-panel-body no-pad">
-        <table class="db-table">
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th>Amount</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @recent_sales.each do |sale| %>
+        <div class="table-responsive">
+          <table class="db-table">
+            <thead>
               <tr>
-                <td><%= sale.customer_name %></td>
-                <td class="text-green"><%= number_to_currency(sale.total_amount) %></td>
-                <td>
-                  <span class="db-badge <%= sale.payment_status %>">
-                    <%= sale.payment_status.titleize %>
-                  </span>
-                </td>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% @recent_sales.each do |sale| %>
+                <tr>
+                  <td data-label="Customer"><%= sale.customer_name %></td>
+                  <td data-label="Amount" class="text-green"><%= number_to_currency(sale.total_amount) %></td>
+                  <td data-label="Status">
+                    <span class="db-badge <%= sale.payment_status %>">
+                      <%= sale.payment_status.titleize %>
+                    </span>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -448,24 +502,26 @@
         <%= link_to "View All →", expenses_path, class: "db-panel-link" %>
       </div>
       <div class="db-panel-body no-pad">
-        <table class="db-table">
-          <thead>
-            <tr>
-              <th>Vehicle</th>
-              <th>Category</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @recent_expenses.each do |expense| %>
+        <div class="table-responsive">
+          <table class="db-table">
+            <thead>
               <tr>
-                <td class="text-mono"><%= expense.vehicle.registration_number %></td>
-                <td><%= expense.category.titleize %></td>
-                <td class="text-red"><%= number_to_currency(expense.amount) %></td>
+                <th>Vehicle</th>
+                <th>Category</th>
+                <th>Amount</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% @recent_expenses.each do |expense| %>
+                <tr>
+                  <td data-label="Vehicle" class="text-mono"><%= expense.vehicle.registration_number %></td>
+                  <td data-label="Category"><%= expense.category.titleize %></td>
+                  <td data-label="Amount" class="text-red"><%= number_to_currency(expense.amount) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

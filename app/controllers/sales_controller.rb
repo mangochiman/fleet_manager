@@ -15,21 +15,18 @@ class SalesController < ApplicationController
       # Drivers can only see their own sales
       sales_scope = Sale.where(user_id: current_user.id)
       
-      # Get total counts before pagination
-      @total_sales = sales_scope.sum(:total_amount)
-      @outstanding_sales = sales_scope.outstanding.sum(:total_amount)
+      # Get trip metrics - Only trips, no financial data
+      @total_trips = sales_scope.sum(:quantity)  # Total quantity = total trips
       @sales_total_count = sales_scope.count
-      @sales_outstanding_count = sales_scope.outstanding.count
+      
+      # Calculate monthly trips
+      start_of_month = Date.current.beginning_of_month
+      end_of_month = Date.current.end_of_month
+      @monthly_trips = sales_scope.where(transaction_date: start_of_month..end_of_month).count
       
       # Apply search filter if present
       if params[:search].present?
-        sales_scope = sales_scope.where("customer_name LIKE ? OR transaction_id LIKE ?", 
-                                        "%#{params[:search]}%", "%#{params[:search]}%")
-      end
-      
-      # Apply status filter if present
-      if params[:status].present?
-        sales_scope = sales_scope.where(payment_status: params[:status])
+        sales_scope = sales_scope.where("customer_name LIKE ?", "%#{params[:search]}%")
       end
       
       # Apply pagination
@@ -84,43 +81,50 @@ class SalesController < ApplicationController
     if current_user.driver?
       # Drivers can only select their assigned vehicle
       @vehicles = Vehicle.where(id: current_user.vehicle_id).active
+      render :driver_new and return  # Use driver-specific form
     else
       @vehicles = Vehicle.active
     end
   end
   
   def create
-    @sale = Sale.new(sale_params)
-    @sale.user_id = current_user.id
-    
-    # Drivers can only create sales for their assigned vehicle
+  @sale = Sale.new(sale_params)
+  @sale.user_id = current_user.id
+  
+  # Drivers can only create sales for their assigned vehicle
+  if current_user.driver?
+    @sale.vehicle_id = current_user.vehicle_id
+  end
+  
+  # Get product price and set unit_price (auto-populated, read-only)
+  if params[:sale][:product_id].present?
+    product = Product.find(params[:sale][:product_id])
+    @sale.unit_price = product.price
+  end
+  
+  # Auto-calculate total amount
+  if params[:sale][:quantity].present?
+    @sale.total_amount = params[:sale][:quantity].to_f * @sale.unit_price
+  end
+  
+  if @sale.save
+    # Redirect based on user role
     if current_user.driver?
-      @sale.vehicle_id = current_user.vehicle_id
-    end
-    
-    # Get product price and set unit_price (auto-populated, read-only)
-    if params[:sale][:product_id].present?
-      product = Product.find(params[:sale][:product_id])
-      @sale.unit_price = product.price
-    end
-    
-    # Auto-calculate total amount
-    if params[:sale][:quantity].present?
-      @sale.total_amount = params[:sale][:quantity].to_f * @sale.unit_price
-    end
-    
-    if @sale.save
-      redirect_to @sale, notice: 'Sale was successfully created.'
+      redirect_to sales_path, notice: 'Trip was successfully recorded.'
     else
-      @products = Product.active
-      if current_user.driver?
-        @vehicles = Vehicle.where(id: current_user.vehicle_id).active
-      else
-        @vehicles = Vehicle.active
-      end
+      redirect_to @sale, notice: 'Sale was successfully created.'
+    end
+  else
+    @products = Product.active
+    if current_user.driver?
+      @vehicles = Vehicle.where(id: current_user.vehicle_id).active
+      render :driver_new
+    else
+      @vehicles = Vehicle.active
       render :new
     end
   end
+end
   
   def edit
     @products = Product.active

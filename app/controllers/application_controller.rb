@@ -53,7 +53,11 @@ class ApplicationController < ActionController::Base
   end
   
   def after_sign_in_path_for(resource)
-    dashboard_path
+    if resource.driver?
+      sales_path  # Send drivers directly to their trips page
+    else
+      dashboard_path  # Admins/Managers go to dashboard
+    end
   end
   
   def after_sign_out_path_for(resource)
