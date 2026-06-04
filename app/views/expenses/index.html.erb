@@ -320,6 +320,19 @@
     color: var(--ink-2);
   }
 
+  /* ── Payment mode badge ── */
+  .ex-payment {
+    display: inline-block;
+    padding: 0.18rem 0.5rem;
+    border-radius: 2px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    background: var(--blue-l);
+    border: 1px solid var(--blue);
+    color: var(--blue);
+  }
+
   /* ── Receipt link ── */
   .ex-receipt-link {
     font-size: 0.68rem;
@@ -553,6 +566,9 @@
     <%= select_tag :category,
           options_for_select([["All Categories", ""]] + Expense::CATEGORIES.map { |k, v| [v, k] }, params[:category]),
           class: "ex-input", style: "min-width: 140px;" %>
+    <%= select_tag :payment_mode,
+          options_for_select([["All Payment Methods", ""]] + Expense::PAYMENT_MODES.map { |k, v| [v, k] }, params[:payment_mode]),
+          class: "ex-input", style: "min-width: 140px;" %>
     <%= date_field_tag :start_date, params[:start_date], class: "ex-input", style: "width: 130px;" %>
     <span class="ex-filter-label">to</span>
     <%= date_field_tag :end_date, params[:end_date], class: "ex-input", style: "width: 130px;" %>
@@ -585,6 +601,7 @@
             <th>Date</th>
             <th>Vehicle</th>
             <th>Category</th>
+            <th>Payment Mode</th>
             <th>Description</th>
             <th>Amount</th>
             <th>Receipt</th>
@@ -603,6 +620,9 @@
               </td>
               <td>
                 <span class="ex-cat"><%= expense.category_name %></span>
+              </td>
+              <td>
+                <span class="ex-payment"><%= expense.payment_mode_name %></span>
               </td>
               <td>
                 <span class="ex-desc"><%= truncate(expense.description, length: 40) %></span>
@@ -671,6 +691,9 @@
           <div class="ex-card-grid">
             <span class="ex-card-key">Date</span>
             <span><%= expense.expense_date.strftime("%-d %b %Y") %></span>
+
+            <span class="ex-card-key">Payment Mode</span>
+            <span class="ex-payment" style="display: inline-block; width: fit-content;"><%= expense.payment_mode_name %></span>
 
             <span class="ex-card-key">Amount</span>
             <span class="ex-amount"><%= number_to_currency(expense.amount) %></span>

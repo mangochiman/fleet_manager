@@ -7,6 +7,7 @@ class Expense < ApplicationRecord
   validates :amount, presence: true, numericality: { greater_than: 0 }
   validates :expense_date, presence: true
   validates :description, presence: true
+  validates :payment_mode, presence: true
 
   # Category constants
   CATEGORIES = {
@@ -20,13 +21,29 @@ class Expense < ApplicationRecord
     'others' => 'Others'
   }.freeze
 
+  # Payment modes
+  PAYMENT_MODES = {
+    'cash' => 'Cash',
+    'bank_transfer' => 'Bank Transfer',
+    'cheque' => 'Cheque',
+    'credit_card' => 'Credit Card',
+    'tnm_mpamba' => 'TNM Mpamba',
+    'airtel_money' => 'Airtel Money',
+    'other' => 'Other'
+  }.freeze
+
   def category_name
     CATEGORIES[category] || category.titleize
+  end
+
+  def payment_mode_name
+    PAYMENT_MODES[payment_mode] || payment_mode.titleize
   end
 
   scope :by_vehicle, ->(vehicle_id) { where(vehicle_id: vehicle_id) }
   scope :by_date_range, ->(start_date, end_date) { where(expense_date: start_date..end_date) }
   scope :by_category, ->(category) { where(category: category) }
+  scope :by_payment_mode, ->(payment_mode) { where(payment_mode: payment_mode) }
   scope :this_month, -> { where(expense_date: Date.current.beginning_of_month..Date.current.end_of_month) }
   scope :this_year, -> { where(expense_date: Date.current.beginning_of_year..Date.current.end_of_year) }
 

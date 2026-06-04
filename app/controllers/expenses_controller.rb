@@ -31,6 +31,10 @@ class ExpensesController < ApplicationController
       @expenses = @expenses.where(category: params[:category])
     end
     
+    if params[:payment_mode].present?
+      @expenses = @expenses.where(payment_mode: params[:payment_mode])
+    end
+    
     if params[:start_date].present?
       @expenses = @expenses.where("expense_date >= ?", params[:start_date])
     end
@@ -183,6 +187,6 @@ class ExpensesController < ApplicationController
   end
   
   def expense_params
-    params.require(:expense).permit(:vehicle_id, :category, :amount, :expense_date, :description, :receipt)
+    params.require(:expense).permit(:vehicle_id, :category, :payment_mode, :amount, :expense_date, :description, :receipt)
   end
 end

@@ -26,6 +26,10 @@
       <span class="badge badge-active"><%= @expense.category_name %></span>
     </div>
     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Payment Mode:</span>
+      <span class="badge" style="background: #eff4ff; color: #2563eb;"><%= @expense.payment_mode_name %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
       <span style="color: #64748b;">Amount:</span>
       <span class="negative"><strong><%= number_to_currency(@expense.amount) %></strong></span>
     </div>

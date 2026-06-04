@@ -22,6 +22,11 @@
     </div>
     
     <div class="form-group">
+      <%= f.label :payment_mode, "Payment Mode *" %>
+      <%= f.select :payment_mode, Expense::PAYMENT_MODES.map { |k, v| [v, k] }, { prompt: "Select payment method" }, class: "form-control", required: true %>
+    </div>
+    
+    <div class="form-group">
       <%= f.label :amount, "Amount *" %>
       <%= f.number_field :amount, class: "form-control", step: "any", placeholder: "0.00", required: true %>
     </div>
