@@ -13,179 +13,184 @@
   <% end %>
 </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
-  <!-- Transaction Info -->
-  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">TRANSACTION INFO</h3>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-      <span style="color: #64748b;">Date:</span>
-      <span><%= @sale.transaction_date.strftime("%B %d, %Y") %></span>
+<div style="display: grid; grid-template-columns: 1fr; gap: 1rem; max-width: 1200px; margin: 0 auto;">
+  
+  <!-- Responsive grid for info cards -->
+  <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+    
+    <!-- Transaction Info -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">TRANSACTION INFO</h3>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Date:</span>
+        <span><%= @sale.transaction_date.strftime("%B %d, %Y") %></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Vehicle:</span>
+        <span><%= @sale.vehicle.registration_number %></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Recorded By:</span>
+        <span><%= @sale.user.name %></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Status:</span>
+        <span class="badge badge-<%= @sale.payment_status %>"><%= @sale.payment_status.titleize %></span>
+      </div>
     </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-      <span style="color: #64748b;">Vehicle:</span>
-      <span><%= @sale.vehicle.registration_number %></span>
+
+    <!-- Customer Info -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">CUSTOMER INFO</h3>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Name:</span>
+        <span><strong><%= @sale.customer_name %></strong></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Phone:</span>
+        <span><%= @sale.customer_phone || '—' %></span>
+      </div>
+      <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #e2e8f0;">
+        <%= link_to "View all sales by #{@sale.customer_name}", sales_path(search: @sale.customer_name), class: "link", style: "font-size: 0.75rem;" %>
+      </div>
     </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-      <span style="color: #64748b;">Recorded By:</span>
-      <span><%= @sale.user.name %></span>
+
+    <!-- Product Info -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">PRODUCT INFO</h3>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Product:</span>
+        <span><%= @sale.product.name %></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Quantity:</span>
+        <span><%= @sale.quantity %> <%= @sale.product.unit %></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Unit Price:</span>
+        <span><%= number_to_currency(@sale.unit_price) %></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Price at Sale:</span>
+        <span><%= number_to_currency(@sale.price_at_sale || @sale.unit_price) %></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.875rem; flex-wrap: wrap;">
+        <span style="color: #64748b;">Total:</span>
+        <span class="positive"><strong><%= number_to_currency(@sale.total_amount) %></strong></span>
+      </div>
     </div>
-    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-      <span style="color: #64748b;">Status:</span>
-      <span class="badge badge-<%= @sale.payment_status %>"><%= @sale.payment_status.titleize %></span>
+
+    <!-- Payment Progress & Actions -->
+    <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">PAYMENT PROGRESS</h3>
+      
+      <!-- Payment Progress Bar -->
+      <div style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+          <span style="color: #64748b;">Amount Paid:</span>
+          <span class="positive"><strong><%= number_to_currency(@sale.paid_amount || 0) %></strong></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; flex-wrap: wrap;">
+          <span style="color: #64748b;">Remaining Balance:</span>
+          <span class="negative"><strong><%= number_to_currency(@sale.remaining_balance) %></strong></span>
+        </div>
+        <div style="background: #e2e8f0; border-radius: 0.5rem; overflow: hidden; margin-top: 0.5rem;">
+          <div style="width: <%= @sale.payment_percentage %>%; height: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: width 0.3s;"></div>
+        </div>
+        <div style="text-align: center; margin-top: 0.5rem; font-size: 0.75rem; color: #64748b;">
+          <%= @sale.payment_percentage %>% Complete
+        </div>
+      </div>
+
+      <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem; margin-top: 1rem;">NOTES & ACTIONS</h3>
+      <% if @sale.notes.present? %>
+        <div style="margin-bottom: 1rem; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem; font-size: 0.875rem; word-wrap: break-word;">
+          <%= @sale.notes %>
+        </div>
+      <% else %>
+        <div style="margin-bottom: 1rem; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem; font-size: 0.875rem; color: #64748b;">
+          No notes
+        </div>
+      <% end %>
+      
+      <!-- Action Buttons -->
+      <% if @sale.outstanding? || @sale.partial? %>
+        <%= link_to "💰 Record Payment", record_payment_form_sale_path(@sale), class: "btn btn-primary btn-sm", style: "width: 100%; text-align: center; margin-bottom: 0.5rem;" %>
+      <% end %>
+      
+      <% if @sale.outstanding? && !@sale.partial? %>
+        <%= link_to "✓ Mark as Fully Paid", mark_paid_form_sale_path(@sale), class: "btn btn-secondary btn-sm", style: "width: 100%; text-align: center;" %>
+      <% elsif @sale.paid? %>
+        <%= button_to "🏦 Mark as Banked", mark_banked_sale_path(@sale), method: :patch, class: "btn btn-primary btn-sm", style: "width: 100%; text-align: center;", form: { data: { turbo_confirm: "Has this been deposited to the bank?" } } %>
+      <% elsif @sale.banked? %>
+        <div style="padding: 0.75rem; background: #d1fae5; border-radius: 0.5rem; text-align: center;">
+          <span style="color: #065f46;">✓ Payment Complete</span>
+        </div>
+      <% end %>
     </div>
   </div>
 
-  <!-- Customer Info -->
-  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">CUSTOMER INFO</h3>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-      <span style="color: #64748b;">Name:</span>
-      <span><strong><%= @sale.customer_name %></strong></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-      <span style="color: #64748b;">Phone:</span>
-      <span><%= @sale.customer_phone || '—' %></span>
-    </div>
-    <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #e2e8f0;">
-      <%= link_to "View all sales by #{@sale.customer_name}", sales_path(search: @sale.customer_name), class: "link", style: "font-size: 0.75rem;" %>
-    </div>
-  </div>
-
-  <!-- Product Info -->
-  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">PRODUCT INFO</h3>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-      <span style="color: #64748b;">Product:</span>
-      <span><%= @sale.product.name %></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-      <span style="color: #64748b;">Quantity:</span>
-      <span><%= @sale.quantity %> <%= @sale.product.unit %></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-      <span style="color: #64748b;">Unit Price:</span>
-      <span><%= number_to_currency(@sale.unit_price) %></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-      <span style="color: #64748b;">Price at Sale:</span>
-      <span><%= number_to_currency(@sale.price_at_sale || @sale.unit_price) %></span>
-    </div>
-    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
-      <span style="color: #64748b;">Total:</span>
-      <span class="positive"><strong><%= number_to_currency(@sale.total_amount) %></strong></span>
-    </div>
-  </div>
-
-  <!-- Payment Progress & Actions -->
-  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">PAYMENT PROGRESS</h3>
-    
-    <!-- Payment Progress Bar -->
-    <div style="margin-bottom: 1rem;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-        <span style="color: #64748b;">Amount Paid:</span>
-        <span class="positive"><strong><%= number_to_currency(@sale.paid_amount || 0) %></strong></span>
-      </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
-        <span style="color: #64748b;">Remaining Balance:</span>
-        <span class="negative"><strong><%= number_to_currency(@sale.remaining_balance) %></strong></span>
-      </div>
-      <div style="background: #e2e8f0; border-radius: 0.5rem; overflow: hidden; margin-top: 0.5rem;">
-        <div style="width: <%= @sale.payment_percentage %>%; height: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: width 0.3s;"></div>
-      </div>
-      <div style="text-align: center; margin-top: 0.5rem; font-size: 0.75rem; color: #64748b;">
-        <%= @sale.payment_percentage %>% Complete
-      </div>
-    </div>
-
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem; margin-top: 1rem;">NOTES & ACTIONS</h3>
-    <% if @sale.notes.present? %>
-      <div style="margin-bottom: 1rem; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem; font-size: 0.875rem;">
-        <%= @sale.notes %>
-      </div>
-    <% else %>
-      <div style="margin-bottom: 1rem; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem; font-size: 0.875rem; color: #64748b;">
-        No notes
-      </div>
-    <% end %>
-    
-    <!-- Action Buttons -->
-    <% if @sale.outstanding? || @sale.partial? %>
-      <%= link_to "💰 Record Payment", record_payment_form_sale_path(@sale), class: "btn btn-primary btn-sm", style: "width: 100%; text-align: center; margin-bottom: 0.5rem;" %>
-    <% end %>
-    
-    <% if @sale.outstanding? && !@sale.partial? %>
-      <%= link_to "✓ Mark as Fully Paid", mark_paid_form_sale_path(@sale), class: "btn btn-secondary btn-sm", style: "width: 100%; text-align: center;" %>
-    <% elsif @sale.paid? %>
-      <%= button_to "🏦 Mark as Banked", mark_banked_sale_path(@sale), method: :patch, class: "btn btn-primary btn-sm", style: "width: 100%; text-align: center;", form: { data: { turbo_confirm: "Has this been deposited to the bank?" } } %>
-    <% elsif @sale.banked? %>
-      <div style="padding: 0.75rem; background: #d1fae5; border-radius: 0.5rem; text-align: center;">
-        <span style="color: #065f46;">✓ Payment Complete</span>
-      </div>
-    <% end %>
-  </div>
-</div>
-
-<!-- Payment History Section -->
-<div style="margin-top: 1.5rem;">
-  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">PAYMENT HISTORY</h3>
-    
-    <% if @sale.payment_histories.any? %>
-      <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-              <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Date & Time</th>
-              <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Status Change</th>
-              <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Amount</th>
-              <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Reference</th>
-              <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Proof</th>
-              <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">By</th>
-              <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @sale.payment_histories.order(created_at: :desc).each do |history| %>
+  <!-- Payment History Section -->
+  <div style="margin-top: 1.5rem;">
+    <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">PAYMENT HISTORY</h3>
+      
+      <% if @sale.payment_histories.any? %>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; min-width: 700px;">
+            <thead>
               <tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 0.5rem; font-size: 0.75rem;"><%= history.display_time %></td>
-                <td style="padding: 0.5rem; font-size: 0.75rem;">
-                  <span class="badge badge-<%= history.old_status %>"><%= history.old_status.titleize %></span>
-                  →
-                  <span class="badge badge-<%= history.new_status %>"><%= history.new_status.titleize %></span>
-                </td>
-                <td style="padding: 0.5rem; font-size: 0.75rem;">
-                  <% if history.notes && history.notes.match(/Payment amount: (.*)/) %>
-                    <%= $1 %>
-                  <% else %>
-                    —
-                  <% end %>
-                </td>
-                <td style="padding: 0.5rem; font-size: 0.75rem;">
-                  <% if history.proof_number.present? %>
-                    <code style="font-size: 0.7rem;"><%= history.proof_number %></code>
-                  <% else %>
-                    —
-                  <% end %>
-                </td>
-                <td style="padding: 0.5rem; font-size: 0.75rem;">
-                  <% if history.proof_attachment.attached? %>
-                    <%= link_to "View Proof", proof_sale_path(@sale, history_id: history.id), style: "color: #667eea; text-decoration: none;" %>
-                  <% else %>
-                    —
-                  <% end %>
-                </td>
-                <td style="padding: 0.5rem; font-size: 0.75rem;"><%= history.user&.name || 'System' %></td>
-                <td style="padding: 0.5rem; font-size: 0.75rem;"><%= history.notes&.gsub(/Payment amount: .*/, '') || '—' %></td>
+                <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Date & Time</th>
+                <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Status Change</th>
+                <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Amount</th>
+                <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Reference</th>
+                <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Proof</th>
+                <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">By</th>
+                <th style="text-align: left; padding: 0.5rem; font-size: 0.75rem; color: #64748b;">Notes</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <div style="text-align: center; padding: 2rem; color: #64748b;">
-        No payment history available.
-      </div>
-    <% end %>
+            </thead>
+            <tbody>
+              <% @sale.payment_histories.order(created_at: :desc).each do |history| %>
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                  <td style="padding: 0.5rem; font-size: 0.75rem;"><%= history.display_time %></td>
+                  <td style="padding: 0.5rem; font-size: 0.75rem;">
+                    <span class="badge badge-<%= history.old_status %>"><%= history.old_status.titleize %></span>
+                    →
+                    <span class="badge badge-<%= history.new_status %>"><%= history.new_status.titleize %></span>
+                  </td>
+                  <td style="padding: 0.5rem; font-size: 0.75rem;">
+                    <% if history.notes && history.notes.match(/Payment amount: (.*)/) %>
+                      <%= $1 %>
+                    <% else %>
+                      —
+                    <% end %>
+                  </td>
+                  <td style="padding: 0.5rem; font-size: 0.75rem;">
+                    <% if history.proof_number.present? %>
+                      <code style="font-size: 0.7rem;"><%= history.proof_number %></code>
+                    <% else %>
+                      —
+                    <% end %>
+                  </td>
+                  <td style="padding: 0.5rem; font-size: 0.75rem;">
+                    <% if history.proof_attachment.attached? %>
+                      <%= link_to "View Proof", proof_sale_path(@sale, history_id: history.id), style: "color: #667eea; text-decoration: none;" %>
+                    <% else %>
+                      —
+                    <% end %>
+                  </td>
+                  <td style="padding: 0.5rem; font-size: 0.75rem;"><%= history.user&.name || 'System' %></td>
+                  <td style="padding: 0.5rem; font-size: 0.75rem;"><%= history.notes&.gsub(/Payment amount: .*/, '') || '—' %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div style="text-align: center; padding: 2rem; color: #64748b;">
+          No payment history available.
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
