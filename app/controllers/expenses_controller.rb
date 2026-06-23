@@ -1,14 +1,14 @@
+# app/controllers/expenses_controller.rb
 class ExpensesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_expense, only: [:show, :edit, :update, :destroy, :receipt]
+  before_action :set_expense, only: [:show, :edit, :update, :destroy, :receipt, 
+                                      :mark_paid, :mark_pending, :cancel]
   
-  # Role restrictions
-  before_action :authorize_admin!, only: [:new, :create, :edit, :update, :destroy]
+  before_action :authorize_admin!, except: [:index, :show, :receipt]
   
   def index
     # Role-based filtering
     if current_user.driver?
-      # Drivers can only see expenses for their assigned vehicle
       if current_user.vehicle_id.present?
         @expenses = Expense.where(vehicle_id: current_user.vehicle_id)
       else
@@ -16,7 +16,6 @@ class ExpensesController < ApplicationController
         redirect_to dashboard_path, alert: 'No vehicle assigned to your account.' and return
       end
     else
-      # Admins, Managers, Super Admins see all expenses
       @expenses = Expense.all
     end
     
@@ -35,6 +34,10 @@ class ExpensesController < ApplicationController
       @expenses = @expenses.where(payment_mode: params[:payment_mode])
     end
     
+    if params[:payment_status].present?
+      @expenses = @expenses.where(payment_status: params[:payment_status])
+    end
+    
     if params[:start_date].present?
       @expenses = @expenses.where("expense_date >= ?", params[:start_date])
     end
@@ -48,34 +51,27 @@ class ExpensesController < ApplicationController
     @per_page = 100 if @per_page > 100
     @expenses = @expenses.paginate(page: params[:page], per_page: @per_page)
     
-    # Stats - Fix GROUP BY issue by using separate queries
+    # Stats
     if current_user.driver?
-      # For drivers, stats are based on their filtered expenses
       @total_expenses = @expenses.sum(:amount)
-      @expenses_by_category = Expense.where(vehicle_id: current_user.vehicle_id)
-                                     .where(expense_date: @expenses.map(&:expense_date))
-                                     .group(:category)
-                                     .sum(:amount)
+      @pending_expenses = @expenses.pending.sum(:amount)
+      @paid_expenses = @expenses.paid.sum(:amount)
+      @cancelled_expenses = @expenses.cancelled.sum(:amount)
     else
-      # For admins, use proper queries without GROUP BY conflicts
       @total_expenses = @expenses.sum(:amount)
+      @pending_expenses = @expenses.pending.sum(:amount)
+      @paid_expenses = @expenses.paid.sum(:amount)
+      @cancelled_expenses = @expenses.cancelled.sum(:amount)
       
-      # Get expenses by category using a separate query without ordering
       @expenses_by_category = Expense.where(expense_date: params[:start_date]..params[:end_date])
                                      .group(:category)
                                      .sum(:amount)
     end
     
-    # Vehicles for filter (only show vehicles the user has access to)
-    if current_user.driver?
-      @vehicles = Vehicle.where(id: current_user.vehicle_id)
-    else
-      @vehicles = Vehicle.active
-    end
+    @vehicles = current_user.driver? ? Vehicle.where(id: current_user.vehicle_id) : Vehicle.active
   end
   
   def show
-    # Drivers can only view expenses for their assigned vehicle
     if current_user.driver? && @expense.vehicle_id != current_user.vehicle_id
       redirect_to expenses_path, alert: 'You can only view expenses for your assigned vehicle.'
     end
@@ -84,30 +80,15 @@ class ExpensesController < ApplicationController
   def new
     authorize_admin!
     @expense = Expense.new
-    
-    # Drivers cannot create expenses
-    if current_user.driver?
-      redirect_to expenses_path, alert: 'Drivers cannot create expenses.'
-      return
-    end
-    
     @vehicles = Vehicle.active
   end
   
   def create
     authorize_admin!
-    
-    # Drivers cannot create expenses
-    if current_user.driver?
-      redirect_to expenses_path, alert: 'Drivers cannot create expenses.'
-      return
-    end
-    
     @expense = Expense.new(expense_params)
     @expense.recorded_by_id = current_user.id
     
     if @expense.save
-      # Attach receipt if uploaded
       if params[:expense][:receipt].present?
         @expense.receipt.attach(params[:expense][:receipt])
       end
@@ -120,27 +101,21 @@ class ExpensesController < ApplicationController
   
   def edit
     authorize_admin!
-    
-    # Drivers cannot edit expenses
-    if current_user.driver?
-      redirect_to expenses_path, alert: 'Drivers cannot edit expenses.'
+    unless @expense.editable?
+      redirect_to @expense, alert: 'Only pending expenses can be edited.'
       return
     end
-    
     @vehicles = Vehicle.active
   end
   
   def update
     authorize_admin!
-    
-    # Drivers cannot update expenses
-    if current_user.driver?
-      redirect_to expenses_path, alert: 'Drivers cannot update expenses.'
+    unless @expense.editable?
+      redirect_to @expense, alert: 'Only pending expenses can be updated.'
       return
     end
     
     if @expense.update(expense_params)
-      # Handle receipt update
       if params[:expense][:receipt].present?
         @expense.receipt.attach(params[:expense][:receipt])
       end
@@ -153,10 +128,8 @@ class ExpensesController < ApplicationController
   
   def destroy
     authorize_admin!
-    
-    # Drivers cannot delete expenses
-    if current_user.driver?
-      redirect_to expenses_path, alert: 'Drivers cannot delete expenses.'
+    unless @expense.editable?
+      redirect_to @expense, alert: 'Only pending expenses can be deleted.'
       return
     end
     
@@ -164,8 +137,55 @@ class ExpensesController < ApplicationController
     redirect_to expenses_path, notice: 'Expense was successfully deleted.'
   end
   
+  def mark_paid
+    authorize_admin!
+    
+    if @expense.paid?
+      redirect_to @expense, alert: 'This expense is already marked as paid.'
+      return
+    end
+    
+    if @expense.mark_as_paid!(
+      reference: params[:payment_reference],
+      updated_by: current_user
+    )
+      redirect_to @expense, notice: 'Expense marked as paid successfully.'
+    else
+      redirect_to @expense, alert: 'Unable to mark expense as paid.'
+    end
+  end
+  
+  def mark_pending
+    authorize_admin!
+    
+    if @expense.pending?
+      redirect_to @expense, alert: 'This expense is already pending.'
+      return
+    end
+    
+    if @expense.mark_as_pending!(updated_by: current_user)
+      redirect_to @expense, notice: 'Expense marked as pending successfully.'
+    else
+      redirect_to @expense, alert: 'Unable to mark expense as pending.'
+    end
+  end
+  
+  def cancel
+    authorize_admin!
+    
+    if @expense.cancelled?
+      redirect_to @expense, alert: 'This expense is already cancelled.'
+      return
+    end
+    
+    if @expense.cancel!(updated_by: current_user)
+      redirect_to @expense, notice: 'Expense cancelled successfully.'
+    else
+      redirect_to @expense, alert: 'Unable to cancel expense.'
+    end
+  end
+  
   def receipt
-    # Drivers can only view receipts for their assigned vehicle
     if current_user.driver? && @expense.vehicle_id != current_user.vehicle_id
       redirect_to expenses_path, alert: 'You can only view receipts for your assigned vehicle.'
       return
@@ -187,6 +207,7 @@ class ExpensesController < ApplicationController
   end
   
   def expense_params
-    params.require(:expense).permit(:vehicle_id, :category, :payment_mode, :amount, :expense_date, :description, :receipt)
+    params.require(:expense).permit(:vehicle_id, :category, :payment_mode, :payment_status,
+                                    :amount, :expense_date, :description, :receipt)
   end
 end

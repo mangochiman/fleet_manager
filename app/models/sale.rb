@@ -1,3 +1,4 @@
+# app/models/sale.rb
 class Sale < ApplicationRecord
   belongs_to :user
   belongs_to :vehicle
@@ -6,6 +7,7 @@ class Sale < ApplicationRecord
 
   before_validation :generate_transaction_id, on: :create
   before_validation :calculate_totals, on: :create
+  before_validation :set_price_at_sale, on: :create
   before_create :set_default_dates
 
   validates :customer_name, presence: true
@@ -39,6 +41,17 @@ class Sale < ApplicationRecord
   def payment_percentage
     return 0 if total_amount == 0
     ((paid_amount || 0) / total_amount.to_f * 100).round
+  end
+
+  # Check if sale can be edited
+  def editable?
+    # Only allow editing if payment is not fully processed
+    !paid? && !banked?
+  end
+
+  # Get the price at sale (falls back to unit_price for backward compatibility)
+  def price_at_sale_value
+    price_at_sale || unit_price
   end
 
   # Scopes
@@ -123,8 +136,17 @@ class Sale < ApplicationRecord
   end
 
   def calculate_totals
+    # Set unit_price from product if not set
+    self.unit_price = product.price if unit_price.nil? && product.present?
+    
+    # Calculate total amount
     self.total_amount = quantity * unit_price if quantity && unit_price
     self.paid_amount ||= 0
+  end
+
+  def set_price_at_sale
+    # Store the price at the time of sale
+    self.price_at_sale = unit_price if price_at_sale.nil? && unit_price.present?
   end
 
   def set_default_dates

@@ -1,3 +1,4 @@
+<!-- app/views/sales/index.html.erb -->
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
@@ -300,6 +301,7 @@
 
   .sl-product-name { display: block; color: var(--ink); }
   .sl-product-qty  { font-size: 0.68rem; color: var(--ink-3); display: block; margin-top: 1px; }
+  .sl-price-at-sale { font-size: 0.68rem; color: var(--ink-3); display: block; margin-top: 1px; }
 
   .text-green { color: var(--green); font-weight: 500; }
   .text-red   { color: var(--red);   font-weight: 500; }
@@ -578,6 +580,7 @@
           <tr>
             <th>Customer</th>
             <th>Product</th>
+            <th>Price at Sale</th>
             <th>Amount</th>
             <th>Paid</th>
             <th>Balance</th>
@@ -595,6 +598,9 @@
               <td>
                 <span class="sl-product-name"><%= sale.product.name %></span>
                 <span class="sl-product-qty"><%= sale.quantity %> <%= sale.product.unit %></span>
+              </td>
+              <td>
+                <span class="sl-price-at-sale"><%= number_to_currency(sale.price_at_sale || sale.unit_price) %></span>
               </td>
               <td class="text-green"><%= number_to_currency(sale.total_amount) %></td>
               <td class="text-green"><%= number_to_currency(sale.paid_amount || 0) %></td>
@@ -659,6 +665,9 @@
 
             <span class="sl-card-key">Product</span>
             <span><%= sale.product.name %> &mdash; <small><%= sale.quantity %> <%= sale.product.unit %></small></span>
+
+            <span class="sl-card-key">Price at Sale</span>
+            <span><%= number_to_currency(sale.price_at_sale || sale.unit_price) %></span>
 
             <span class="sl-card-key">Amount</span>
             <span class="text-green"><%= number_to_currency(sale.total_amount) %></span>

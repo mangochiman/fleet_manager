@@ -1,3 +1,4 @@
+# config/routes.rb
 Rails.application.routes.draw do
   devise_for :users
   
@@ -22,6 +23,9 @@ Rails.application.routes.draw do
   resources :expenses do
     member do
       get :receipt
+      patch :mark_paid      # Mark expense as paid
+      patch :mark_pending   # Mark expense as pending (unpaid)
+      patch :cancel         # Cancel expense
     end
   end
   

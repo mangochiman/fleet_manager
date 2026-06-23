@@ -1,3 +1,4 @@
+# app/controllers/sales_controller.rb
 class SalesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_sale, only: [:show, :edit, :update, :destroy, :mark_paid, :mark_banked, :mark_paid_form, :record_payment_form, :record_payment, :proof]
@@ -75,7 +76,7 @@ class SalesController < ApplicationController
   
   def new
     @sale = Sale.new
-    @products = Product.active
+    @products = Product.active.order(:name)
     
     # Role-based vehicle selection
     if current_user.driver?
@@ -83,56 +84,63 @@ class SalesController < ApplicationController
       @vehicles = Vehicle.where(id: current_user.vehicle_id).active
       render :driver_new and return  # Use driver-specific form
     else
-      @vehicles = Vehicle.active
+      @vehicles = Vehicle.active.order(:registration_number)
     end
   end
   
   def create
-  @sale = Sale.new(sale_params)
-  @sale.user_id = current_user.id
-  
-  # Drivers can only create sales for their assigned vehicle
-  if current_user.driver?
-    @sale.vehicle_id = current_user.vehicle_id
-  end
-  
-  # Get product price and set unit_price (auto-populated, read-only)
-  if params[:sale][:product_id].present?
-    product = Product.find(params[:sale][:product_id])
-    @sale.unit_price = product.price
-  end
-  
-  # Auto-calculate total amount
-  if params[:sale][:quantity].present?
-    @sale.total_amount = params[:sale][:quantity].to_f * @sale.unit_price
-  end
-  
-  if @sale.save
-    # Redirect based on user role
+    @sale = Sale.new(sale_params)
+    @sale.user_id = current_user.id
+    
+    # Drivers can only create sales for their assigned vehicle
     if current_user.driver?
-      redirect_to sales_path, notice: 'Trip was successfully recorded.'
-    else
-      redirect_to @sale, notice: 'Sale was successfully created.'
+      @sale.vehicle_id = current_user.vehicle_id
     end
-  else
-    @products = Product.active
-    if current_user.driver?
-      @vehicles = Vehicle.where(id: current_user.vehicle_id).active
-      render :driver_new
+    
+    # Get product and set prices
+    if params[:sale][:product_id].present?
+      product = Product.find(params[:sale][:product_id])
+      @sale.unit_price = product.price
+      @sale.price_at_sale = product.price  # Store the price at sale
+    end
+    
+    # Auto-calculate total amount
+    if params[:sale][:quantity].present?
+      @sale.total_amount = params[:sale][:quantity].to_f * @sale.unit_price
+    end
+    
+    if @sale.save
+      # Redirect based on user role
+      if current_user.driver?
+        redirect_to sales_path, notice: 'Trip was successfully recorded.'
+      else
+        redirect_to @sale, notice: 'Sale was successfully created.'
+      end
     else
-      @vehicles = Vehicle.active
-      render :new
+      @products = Product.active.order(:name)
+      if current_user.driver?
+        @vehicles = Vehicle.where(id: current_user.vehicle_id).active
+        render :driver_new
+      else
+        @vehicles = Vehicle.active.order(:registration_number)
+        render :new
+      end
     end
   end
-end
   
   def edit
-    @products = Product.active
+    # Check if sale can be edited
+    unless @sale.editable?
+      redirect_to @sale, alert: 'This sale cannot be edited because it has been paid or banked.'
+      return
+    end
+    
+    @products = Product.active.order(:name)
     
     if current_user.driver?
       @vehicles = Vehicle.where(id: current_user.vehicle_id).active
     else
-      @vehicles = Vehicle.active
+      @vehicles = Vehicle.active.order(:registration_number)
     end
     
     # Check authorization
@@ -142,31 +150,43 @@ end
   end
   
   def update
+    # Check if sale can be edited
+    unless @sale.editable?
+      redirect_to @sale, alert: 'This sale cannot be updated because it has been paid or banked.'
+      return
+    end
+    
     # Check authorization
     if current_user.driver? && @sale.user_id != current_user.id
       redirect_to sales_path, alert: 'You can only update your own sales.'
       return
     end
     
-    # Get product price if product changed
+    # IMPORTANT: Handle product change and preserve price_at_sale
     if params[:sale][:product_id].present? && params[:sale][:product_id] != @sale.product_id.to_s
+      # If product changed, use the new product's price
       product = Product.find(params[:sale][:product_id])
-      @sale.unit_price = product.price
+      params[:sale][:unit_price] = product.price
+      params[:sale][:price_at_sale] = product.price
+    else
+      # Keep the original price_at_sale
+      params[:sale][:unit_price] = @sale.price_at_sale
+      params[:sale][:price_at_sale] = @sale.price_at_sale
     end
     
-    # Recalculate total amount
+    # Recalculate total amount based on quantity and stored price
     if params[:sale][:quantity].present?
-      params[:sale][:total_amount] = params[:sale][:quantity].to_f * @sale.unit_price
+      params[:sale][:total_amount] = params[:sale][:quantity].to_f * params[:sale][:price_at_sale].to_f
     end
     
     if @sale.update(sale_params)
       redirect_to @sale, notice: 'Sale was successfully updated.'
     else
-      @products = Product.active
+      @products = Product.active.order(:name)
       if current_user.driver?
         @vehicles = Vehicle.where(id: current_user.vehicle_id).active
       else
-        @vehicles = Vehicle.active
+        @vehicles = Vehicle.active.order(:registration_number)
       end
       render :edit
     end
@@ -176,6 +196,12 @@ end
     # Check authorization
     if current_user.driver?
       redirect_to sales_path, alert: 'Drivers cannot delete sales.'
+      return
+    end
+    
+    # Check if sale can be deleted
+    unless @sale.editable?
+      redirect_to @sale, alert: 'This sale cannot be deleted because it has been paid or banked.'
       return
     end
     
@@ -316,10 +342,13 @@ end
   
   def set_sale
     @sale = Sale.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    redirect_to sales_path, alert: 'Sale not found.'
   end
   
   def sale_params
     params.require(:sale).permit(:product_id, :vehicle_id, :customer_name, :customer_phone, 
-                                  :quantity, :unit_price, :transaction_date, :notes)
+                                  :quantity, :unit_price, :price_at_sale, :total_amount, 
+                                  :transaction_date, :notes)
   end
 end

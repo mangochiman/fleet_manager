@@ -1,3 +1,6 @@
+<!-- app/views/expenses/index.html.erb -->
+<!-- Replace the entire content with this updated version -->
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
@@ -26,7 +29,6 @@
     color: var(--ink);
   }
 
-  /* ── Header ── */
   .ex-header {
     display: flex;
     align-items: flex-end;
@@ -66,7 +68,6 @@
     align-items: center;
   }
 
-  /* ── Buttons ── */
   .ex-btn {
     display: inline-flex;
     align-items: center;
@@ -110,30 +111,6 @@
     background: var(--surface);
   }
 
-  .ex-btn-danger {
-    background: transparent;
-    color: var(--red);
-    border-color: #f5cfc4;
-    font-family: 'Inconsolata', monospace;
-    font-size: 0.62rem;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border-radius: 2px;
-    padding: 0.3rem 0.6rem;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.12s;
-    display: inline-flex;
-    align-items: center;
-  }
-
-  .ex-btn-danger:hover {
-    background: var(--red-l);
-    border-color: var(--red);
-  }
-
-  /* ── Stat Cards ── */
   .ex-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -164,6 +141,7 @@
   .ex-stat.red::before   { background: var(--red); }
   .ex-stat.amber::before { background: var(--amber); }
   .ex-stat.green::before { background: var(--green); }
+  .ex-stat.blue::before  { background: var(--blue); }
 
   .ex-stat-label {
     font-size: 0.6rem;
@@ -185,6 +163,7 @@
   .ex-stat.red   .ex-stat-value { color: var(--red); }
   .ex-stat.amber .ex-stat-value { color: var(--amber); }
   .ex-stat.green .ex-stat-value { color: var(--green); }
+  .ex-stat.blue  .ex-stat-value { color: var(--blue); }
 
   .ex-stat-icon {
     position: absolute;
@@ -198,13 +177,13 @@
   .ex-stat:nth-child(1) { animation-delay: 0.04s; }
   .ex-stat:nth-child(2) { animation-delay: 0.08s; }
   .ex-stat:nth-child(3) { animation-delay: 0.12s; }
+  .ex-stat:nth-child(4) { animation-delay: 0.16s; }
 
   @keyframes statIn {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Filter bar ── */
   .ex-filters {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -246,7 +225,6 @@
 
   .ex-filter-sep { flex: 1; }
 
-  /* ── Panel ── */
   .ex-panel {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -273,7 +251,6 @@
     margin: 0;
   }
 
-  /* ── Table ── */
   .ex-table {
     width: 100%;
     border-collapse: collapse;
@@ -306,7 +283,6 @@
   .ex-table tbody tr { transition: background 0.12s; }
   .ex-table tbody tr:hover { background: var(--paper); }
 
-  /* ── Category badge ── */
   .ex-cat {
     display: inline-block;
     padding: 0.18rem 0.5rem;
@@ -320,7 +296,6 @@
     color: var(--ink-2);
   }
 
-  /* ── Payment mode badge ── */
   .ex-payment {
     display: inline-block;
     padding: 0.18rem 0.5rem;
@@ -333,7 +308,6 @@
     color: var(--blue);
   }
 
-  /* ── Receipt link ── */
   .ex-receipt-link {
     font-size: 0.68rem;
     color: var(--blue);
@@ -348,7 +322,6 @@
   .ex-receipt-link:hover { opacity: 0.7; }
   .ex-receipt-none { color: var(--ink-3); font-size: 0.78rem; }
 
-  /* ── Vehicle tag ── */
   .ex-vehicle {
     font-family: 'Syne', sans-serif;
     font-weight: 700;
@@ -381,8 +354,21 @@
     color: var(--ink-3);
   }
 
-  /* ── Action group ── */
-  .ex-actions { display: flex; gap: 0.35rem; align-items: center; }
+  .pl-badge {
+    display: inline-block;
+    padding: 0.18rem 0.5rem;
+    border-radius: 2px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pl-badge.badge-paid { background: var(--green-l); color: var(--green); }
+  .pl-badge.badge-outstanding { background: var(--amber-l); color: var(--amber); }
+  .pl-badge.badge-inactive { background: var(--red-l); color: var(--red); }
+
+  .ex-actions { display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; }
 
   .ex-act {
     display: inline-flex;
@@ -405,14 +391,30 @@
 
   .ex-act:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
 
-  .ex-act.danger {
-    color: var(--red);
-    border-color: #f5cfc4;
+  .ex-act.success {
+    background: var(--green-l);
+    color: var(--green);
+    border-color: var(--green);
   }
 
-  .ex-act.danger:hover { background: var(--red-l); border-color: var(--red); }
+  .ex-act.success:hover { background: var(--green); color: #fff; }
 
-  /* ── Empty state ── */
+  .ex-act.warning {
+    background: var(--amber-l);
+    color: var(--amber);
+    border-color: var(--amber);
+  }
+
+  .ex-act.warning:hover { background: var(--amber); color: #fff; }
+
+  .ex-act.danger {
+    color: var(--red);
+    border-color: var(--red-l);
+    background: var(--red-l);
+  }
+
+  .ex-act.danger:hover { background: var(--red); color: #fff; border-color: var(--red); }
+
   .ex-empty {
     text-align: center;
     padding: 3rem 1rem;
@@ -422,7 +424,6 @@
   .ex-empty-icon { font-size: 2.5rem; opacity: 0.3; margin-bottom: 0.75rem; }
   .ex-empty p { font-size: 0.8rem; margin: 0 0 0.75rem; }
 
-  /* ── Pagination ── */
   .ex-pagination {
     display: flex;
     justify-content: space-between;
@@ -464,7 +465,6 @@
   .ex-pagination .pagination li.active span { background: var(--ink); color: #fff; border-color: var(--ink); }
   .ex-pagination .pagination li.disabled span { opacity: 0.4; }
 
-  /* ── Mobile cards ── */
   .ex-mobile { display: none; }
 
   .ex-card {
@@ -510,7 +510,7 @@
     padding-top: 1px;
   }
 
-  .ex-card-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+  .ex-card-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
   .ex-card-actions .ex-act { flex: 1; justify-content: center; }
 
   @media (max-width: 768px) {
@@ -519,6 +519,7 @@
     .ex-desktop { display: none; }
     .ex-mobile  { display: block; }
     .ex-header-actions .ex-btn span { display: none; }
+    .ex-stats { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
 
@@ -546,11 +547,16 @@
       <div class="ex-stat-icon">💸</div>
     </div>
     <div class="ex-stat amber">
-      <div class="ex-stat-label">Transactions</div>
-      <div class="ex-stat-value"><%= @expenses.total_entries %></div>
-      <div class="ex-stat-icon">📋</div>
+      <div class="ex-stat-label">Pending</div>
+      <div class="ex-stat-value"><%= number_to_currency(@pending_expenses) %></div>
+      <div class="ex-stat-icon">⏳</div>
     </div>
     <div class="ex-stat green">
+      <div class="ex-stat-label">Paid</div>
+      <div class="ex-stat-value"><%= number_to_currency(@paid_expenses) %></div>
+      <div class="ex-stat-icon">✅</div>
+    </div>
+    <div class="ex-stat blue">
       <div class="ex-stat-label">Active Vehicles</div>
       <div class="ex-stat-value"><%= @vehicles.count %></div>
       <div class="ex-stat-icon">🚛</div>
@@ -560,23 +566,39 @@
   <!-- Filter bar -->
   <%= form_tag expenses_path, method: :get, class: "ex-filters" do %>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--ink-3); flex-shrink:0;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    
     <%= select_tag :vehicle_id,
           options_for_select([["All Vehicles", ""]] + @vehicles.map { |v| [v.display_name, v.id] }, params[:vehicle_id]),
           class: "ex-input", style: "min-width: 150px;" %>
+    
     <%= select_tag :category,
           options_for_select([["All Categories", ""]] + Expense::CATEGORIES.map { |k, v| [v, k] }, params[:category]),
           class: "ex-input", style: "min-width: 140px;" %>
+    
     <%= select_tag :payment_mode,
           options_for_select([["All Payment Methods", ""]] + Expense::PAYMENT_MODES.map { |k, v| [v, k] }, params[:payment_mode]),
           class: "ex-input", style: "min-width: 140px;" %>
+    
+    <!-- NEW: Payment Status Filter -->
+    <%= select_tag :payment_status,
+          options_for_select([
+            ["All Status", ""],
+            ["Pending", "pending"],
+            ["Paid", "paid"],
+            ["Cancelled", "cancelled"]
+          ], params[:payment_status]),
+          class: "ex-input", style: "min-width: 130px;" %>
+    
     <%= date_field_tag :start_date, params[:start_date], class: "ex-input", style: "width: 130px;" %>
     <span class="ex-filter-label">to</span>
     <%= date_field_tag :end_date, params[:end_date], class: "ex-input", style: "width: 130px;" %>
+    
     <span class="ex-filter-label">Show</span>
     <%= select_tag :per_page,
           options_for_select([10, 20, 50, 100], params[:per_page] || 20),
           class: "ex-input", style: "width: 70px;",
           onchange: "this.form.submit()" %>
+    
     <span class="ex-filter-sep"></span>
     <%= submit_tag "Filter", class: "ex-btn ex-btn-primary" %>
     <%= link_to "Clear", expenses_path, class: "ex-btn ex-btn-ghost" %>
@@ -604,6 +626,7 @@
             <th>Payment Mode</th>
             <th>Description</th>
             <th>Amount</th>
+            <th>Status</th>
             <th>Receipt</th>
             <th>Recorded By</th>
             <th>Actions</th>
@@ -612,23 +635,16 @@
         <tbody>
           <% @expenses.each do |expense| %>
             <tr>
+              <td><span class="ex-date"><%= expense.expense_date.strftime("%-d %b %Y") %></span></td>
+              <td><span class="ex-vehicle"><%= expense.vehicle.registration_number %></span></td>
+              <td><span class="ex-cat"><%= expense.category_name %></span></td>
+              <td><span class="ex-payment"><%= expense.payment_mode_name %></span></td>
+              <td><span class="ex-desc"><%= truncate(expense.description, length: 40) %></span></td>
+              <td><span class="ex-amount"><%= number_to_currency(expense.amount) %></span></td>
               <td>
-                <span class="ex-date"><%= expense.expense_date.strftime("%-d %b %Y") %></span>
-              </td>
-              <td>
-                <span class="ex-vehicle"><%= expense.vehicle.registration_number %></span>
-              </td>
-              <td>
-                <span class="ex-cat"><%= expense.category_name %></span>
-              </td>
-              <td>
-                <span class="ex-payment"><%= expense.payment_mode_name rescue '' %></span>
-              </td>
-              <td>
-                <span class="ex-desc"><%= truncate(expense.description, length: 40) %></span>
-              </td>
-              <td>
-                <span class="ex-amount"><%= number_to_currency(expense.amount) %></span>
+                <span class="pl-badge <%= expense.status_badge_class %>">
+                  <%= expense.payment_status_name %>
+                </span>
               </td>
               <td>
                 <% if expense.receipt.attached? %>
@@ -640,17 +656,34 @@
                   <span class="ex-receipt-none">—</span>
                 <% end %>
               </td>
-              <td>
-                <span class="ex-recorded"><%= expense.recorded_by&.name || 'System' %></span>
-              </td>
+              <td><span class="ex-recorded"><%= expense.recorded_by&.name || 'System' %></span></td>
               <td>
                 <div class="ex-actions">
                   <%= link_to "View", expense, class: "ex-act" %>
-                  <%= link_to "Edit", edit_expense_path(expense), class: "ex-act" %>
-                  <%= button_to "Delete", expense,
-                        method: :delete,
-                        class: "ex-act danger",
-                        form: { data: { turbo_confirm: "Delete this expense? This cannot be undone." } } %>
+                  
+                  <% if expense.editable? %>
+                    <%= link_to "Edit", edit_expense_path(expense), class: "ex-act" %>
+                  <% end %>
+                  
+                  <!-- Payment Status Actions -->
+                  <% if expense.pending? %>
+                    <%= button_to "Mark Paid", mark_paid_expense_path(expense), 
+                          method: :patch, 
+                          class: "ex-act success",
+                          form: { data: { turbo_confirm: "Mark this expense as paid?" } } %>
+                  <% elsif expense.paid? %>
+                    <%= button_to "Mark Pending", mark_pending_expense_path(expense), 
+                          method: :patch, 
+                          class: "ex-act warning",
+                          form: { data: { turbo_confirm: "Mark this expense as pending (unpaid)?" } } %>
+                  <% end %>
+                  
+                  <% if expense.editable? %>
+                    <%= button_to "Delete", expense,
+                          method: :delete,
+                          class: "ex-act danger",
+                          form: { data: { turbo_confirm: "Delete this expense? This cannot be undone." } } %>
+                  <% end %>
                 </div>
               </td>
             </tr>
@@ -685,15 +718,20 @@
       <div class="ex-card" style="animation-delay: <%= i * 0.04 %>s;">
         <div class="ex-card-head">
           <span class="ex-card-vehicle"><%= expense.vehicle.registration_number %></span>
-          <span class="ex-cat"><%= expense.category_name %></span>
+          <span class="pl-badge <%= expense.status_badge_class %>">
+            <%= expense.payment_status_name %>
+          </span>
         </div>
         <div class="ex-card-body">
           <div class="ex-card-grid">
             <span class="ex-card-key">Date</span>
             <span><%= expense.expense_date.strftime("%-d %b %Y") %></span>
 
+            <span class="ex-card-key">Category</span>
+            <span><span class="ex-cat"><%= expense.category_name %></span></span>
+
             <span class="ex-card-key">Payment Mode</span>
-            <span class="ex-payment" style="display: inline-block; width: fit-content;"><%= expense.payment_mode_name rescue '' %></span>
+            <span class="ex-payment" style="display: inline-block; width: fit-content;"><%= expense.payment_mode_name %></span>
 
             <span class="ex-card-key">Amount</span>
             <span class="ex-amount"><%= number_to_currency(expense.amount) %></span>
@@ -715,11 +753,29 @@
 
           <div class="ex-card-actions">
             <%= link_to "View", expense, class: "ex-act" %>
-            <%= link_to "Edit", edit_expense_path(expense), class: "ex-act" %>
-            <%= button_to "Delete", expense,
-                  method: :delete,
-                  class: "ex-act danger",
-                  form: { data: { turbo_confirm: "Delete this expense? This cannot be undone." } } %>
+            
+            <% if expense.editable? %>
+              <%= link_to "Edit", edit_expense_path(expense), class: "ex-act" %>
+            <% end %>
+            
+            <% if expense.pending? %>
+              <%= button_to "Mark Paid", mark_paid_expense_path(expense), 
+                    method: :patch, 
+                    class: "ex-act success",
+                    form: { data: { turbo_confirm: "Mark this expense as paid?" } } %>
+            <% elsif expense.paid? %>
+              <%= button_to "Mark Pending", mark_pending_expense_path(expense), 
+                    method: :patch, 
+                    class: "ex-act warning",
+                    form: { data: { turbo_confirm: "Mark this expense as pending (unpaid)?" } } %>
+            <% end %>
+            
+            <% if expense.editable? %>
+              <%= button_to "Delete", expense,
+                    method: :delete,
+                    class: "ex-act danger",
+                    form: { data: { turbo_confirm: "Delete this expense? This cannot be undone." } } %>
+            <% end %>
           </div>
         </div>
       </div>

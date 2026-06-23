@@ -1,3 +1,4 @@
+<!-- app/views/dashboard/index.html.erb -->
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
@@ -16,6 +17,8 @@
     --amber-l: #fef6e7;
     --blue:    #2563eb;
     --blue-l:  #eff4ff;
+    --purple:  #7c3aed;
+    --purple-l: #ede9fe;
   }
 
   .db-wrap {
@@ -98,6 +101,7 @@
   .db-stat.red::before    { background: var(--red); }
   .db-stat.amber::before  { background: var(--amber); }
   .db-stat.blue::before   { background: var(--blue); }
+  .db-stat.purple::before { background: var(--purple); }
 
   .db-stat-label {
     font-size: 0.55rem;
@@ -127,6 +131,7 @@
   .db-stat.red    .db-stat-sub { color: var(--red); }
   .db-stat.amber  .db-stat-sub { color: var(--amber); }
   .db-stat.blue   .db-stat-sub { color: var(--blue); }
+  .db-stat.purple .db-stat-sub { color: var(--purple); }
 
   .db-stat-icon {
     position: absolute;
@@ -141,6 +146,65 @@
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+
+  /* ── Sales Status Breakdown ── */
+  .db-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .db-status-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.75rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: statIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .db-status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+  }
+
+  .db-status-card .status-icon {
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .db-status-card .status-label {
+    font-size: 0.55rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.2rem;
+  }
+
+  .db-status-card .status-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .db-status-card .status-count {
+    font-size: 0.55rem;
+    color: var(--ink-3);
+    margin-top: 0.15rem;
+  }
+
+  .db-status-card.outstanding .status-value { color: var(--amber); }
+  .db-status-card.partial .status-value { color: var(--blue); }
+  .db-status-card.paid .status-value { color: var(--green); }
+  .db-status-card.banked .status-value { color: var(--purple); }
+
+  .db-status-card:nth-child(1) { animation-delay: 0.04s; }
+  .db-status-card:nth-child(2) { animation-delay: 0.08s; }
+  .db-status-card:nth-child(3) { animation-delay: 0.12s; }
+  .db-status-card:nth-child(4) { animation-delay: 0.16s; }
 
   /* ── Panels ── */
   .db-panel {
@@ -300,10 +364,10 @@
     text-transform: uppercase;
   }
 
-  .db-badge.paid      { background: var(--green-l); color: var(--green); }
-  .db-badge.pending   { background: var(--amber-l); color: var(--amber); }
-  .db-badge.overdue   { background: var(--red-l);   color: var(--red); }
-  .db-badge.partial   { background: var(--blue-l);  color: var(--blue); }
+  .db-badge.outstanding { background: var(--amber-l); color: var(--amber); }
+  .db-badge.partial     { background: var(--blue-l);  color: var(--blue); }
+  .db-badge.paid        { background: var(--green-l); color: var(--green); }
+  .db-badge.banked      { background: var(--purple-l); color: var(--purple); }
 
   /* ── Two-col bottom ── */
   .db-bottom {
@@ -352,6 +416,10 @@
     .db-stats {
       grid-template-columns: repeat(4, 1fr);
     }
+    
+    .db-status-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
   }
 </style>
 
@@ -394,6 +462,34 @@
       <div class="db-stat-value"><%= number_to_currency(@outstanding_amount) %></div>
       <div class="db-stat-sub"><%= @outstanding_count %> pending</div>
       <div class="db-stat-icon">⏳</div>
+    </div>
+  </div>
+
+  <!-- Sales Status Breakdown -->
+  <div class="db-status-grid">
+    <div class="db-status-card outstanding">
+      <div class="status-icon">⏳</div>
+      <div class="status-label">Outstanding</div>
+      <div class="status-value"><%= number_to_currency(@outstanding_amount) %></div>
+      <div class="status-count"><%= @outstanding_count %> transactions</div>
+    </div>
+    <div class="db-status-card partial">
+      <div class="status-icon">🔄</div>
+      <div class="status-label">Partial</div>
+      <div class="status-value"><%= number_to_currency(@partial_amount) %></div>
+      <div class="status-count"><%= @partial_count %> transactions</div>
+    </div>
+    <div class="db-status-card paid">
+      <div class="status-icon">✅</div>
+      <div class="status-label">Paid</div>
+      <div class="status-value"><%= number_to_currency(@paid_amount) %></div>
+      <div class="status-count"><%= @paid_count %> transactions</div>
+    </div>
+    <div class="db-status-card banked">
+      <div class="status-icon">🏦</div>
+      <div class="status-label">Banked</div>
+      <div class="status-value"><%= number_to_currency(@banked_amount) %></div>
+      <div class="status-count"><%= @banked_count %> transactions</div>
     </div>
   </div>
 

@@ -1,3 +1,4 @@
+<!-- app/views/sales/show.html.erb -->
 <div class="page-header">
   <h1>Sale Details</h1>
   <p><code><%= @sale.transaction_id %></code></p>
@@ -5,8 +6,11 @@
 
 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
   <%= link_to "← Back to Sales", sales_path, class: "btn btn-secondary btn-sm" %>
-  <%= link_to "Edit", edit_sale_path(@sale), class: "btn btn-primary btn-sm" %>
-  <%= button_to "Delete", @sale, method: :delete, class: "btn btn-danger btn-sm", form: { style: "display: inline-block;", data: { turbo_confirm: "Are you sure?" } } %>
+  
+  <% if @sale.editable? %>
+    <%= link_to "Edit", edit_sale_path(@sale), class: "btn btn-primary btn-sm" %>
+    <%= button_to "Delete", @sale, method: :delete, class: "btn btn-danger btn-sm", form: { style: "display: inline-block;", data: { turbo_confirm: "Are you sure?" } } %>
+  <% end %>
 </div>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
@@ -61,6 +65,10 @@
     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
       <span style="color: #64748b;">Unit Price:</span>
       <span><%= number_to_currency(@sale.unit_price) %></span>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Price at Sale:</span>
+      <span><%= number_to_currency(@sale.price_at_sale || @sale.unit_price) %></span>
     </div>
     <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
       <span style="color: #64748b;">Total:</span>

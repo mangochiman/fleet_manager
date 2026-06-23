@@ -1,3 +1,4 @@
+<!-- app/views/expenses/show.html.erb -->
 <div class="page-header">
   <h1>Expense Details</h1>
   <p><%= @expense.category_name %></p>
@@ -5,8 +6,29 @@
 
 <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
   <%= link_to "← Back to Expenses", expenses_path, class: "btn btn-secondary btn-sm" %>
-  <%= link_to "Edit", edit_expense_path(@expense), class: "btn btn-primary btn-sm" %>
-  <%= button_to "Delete", @expense, method: :delete, class: "btn btn-danger btn-sm", form: { style: "display: inline-block;", data: { turbo_confirm: "Are you sure?" } } %>
+  
+  <% if @expense.editable? %>
+    <%= link_to "Edit", edit_expense_path(@expense), class: "btn btn-primary btn-sm" %>
+  <% end %>
+  
+  <!-- Payment Status Actions -->
+  <% if @expense.pending? %>
+    <%= button_to "Mark as Paid", mark_paid_expense_path(@expense), 
+          method: :patch, 
+          class: "btn btn-success btn-sm",
+          form: { data: { turbo_confirm: "Mark this expense as paid?" } } %>
+  <% elsif @expense.paid? %>
+    <%= button_to "Mark as Pending", mark_pending_expense_path(@expense), 
+          method: :patch, 
+          class: "btn btn-warning btn-sm",
+          form: { data: { turbo_confirm: "Mark this expense as pending (unpaid)?" } } %>
+  <% end %>
+  
+  <% if @expense.editable? %>
+    <%= button_to "Delete", @expense, method: :delete, 
+          class: "btn btn-danger btn-sm", 
+          form: { style: "display: inline-block;", data: { turbo_confirm: "Are you sure?" } } %>
+  <% end %>
 </div>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
@@ -27,13 +49,31 @@
     </div>
     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
       <span style="color: #64748b;">Payment Mode:</span>
-      <span class="badge" style="background: #eff4ff; color: #2563eb;"><%= @expense.payment_mode_name rescue '' %></span>
+      <span class="badge" style="background: #eff4ff; color: #2563eb;"><%= @expense.payment_mode_name %></span>
     </div>
     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+      <span style="color: #64748b;">Payment Status:</span>
+      <span class="badge <%= @expense.status_badge_class %>">
+        <%= @expense.payment_status_name %>
+      </span>
+    </div>
+    <% if @expense.paid? %>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+        <span style="color: #64748b;">Paid At:</span>
+        <span><%= @expense.paid_at&.strftime("%B %d, %Y at %I:%M %p") || 'N/A' %></span>
+      </div>
+      <% if @expense.payment_reference.present? %>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem;">
+          <span style="color: #64748b;">Payment Reference:</span>
+          <span><strong><%= @expense.payment_reference %></strong></span>
+        </div>
+      <% end %>
+    <% end %>
+    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
       <span style="color: #64748b;">Amount:</span>
       <span class="negative"><strong><%= number_to_currency(@expense.amount) %></strong></span>
     </div>
-    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+    <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #e2e8f0;">
       <span style="color: #64748b;">Recorded By:</span>
       <span><%= @expense.recorded_by&.name || 'System' %></span>
     </div>

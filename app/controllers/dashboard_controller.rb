@@ -1,3 +1,4 @@
+# app/controllers/dashboard_controller.rb
 class DashboardController < ApplicationController
   before_action :authenticate_user!
   before_action :redirect_drivers, only: [:index]
@@ -7,8 +8,19 @@ class DashboardController < ApplicationController
     @total_revenue = Sale.sum(:total_amount)
     @total_expenses = Expense.sum(:amount)
     @net_profit = @total_revenue - @total_expenses
+    
+    # Sales Status Breakdown
     @outstanding_amount = Sale.outstanding.sum(:total_amount)
     @outstanding_count = Sale.outstanding.count
+    
+    @partial_amount = Sale.partial.sum(:total_amount)
+    @partial_count = Sale.partial.count
+    
+    @paid_amount = Sale.paid.sum(:total_amount)
+    @paid_count = Sale.paid.count
+    
+    @banked_amount = Sale.banked.sum(:total_amount)
+    @banked_count = Sale.banked.count
     
     # Recent data
     @recent_sales = Sale.includes(:user, :vehicle, :product).order(created_at: :desc).limit(10)

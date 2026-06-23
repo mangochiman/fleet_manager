@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_04_120609) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_23_052049) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -57,13 +57,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_120609) do
     t.datetime "created_at", null: false
     t.text "description"
     t.date "expense_date", null: false
+    t.datetime "paid_at"
     t.string "payment_mode"
+    t.string "payment_reference"
+    t.string "payment_status", default: "pending", null: false
     t.bigint "recorded_by_id"
     t.string "supporting_document"
     t.datetime "updated_at", null: false
     t.bigint "vehicle_id", null: false
     t.index ["category"], name: "index_expenses_on_category"
     t.index ["expense_date"], name: "index_expenses_on_expense_date"
+    t.index ["paid_at"], name: "index_expenses_on_paid_at"
+    t.index ["payment_status"], name: "index_expenses_on_payment_status"
     t.index ["recorded_by_id"], name: "index_expenses_on_recorded_by_id"
     t.index ["vehicle_id"], name: "index_expenses_on_vehicle_id"
   end
@@ -101,6 +106,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_120609) do
     t.date "payment_due_date"
     t.string "payment_method"
     t.string "payment_status", default: "outstanding"
+    t.decimal "price_at_sale", precision: 10, scale: 2, default: "0.0", null: false
     t.bigint "product_id", null: false
     t.string "proof_of_payment_image"
     t.string "proof_of_payment_number"
@@ -114,6 +120,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_120609) do
     t.bigint "vehicle_id", null: false
     t.index ["customer_name"], name: "index_sales_on_customer_name"
     t.index ["payment_status"], name: "index_sales_on_payment_status"
+    t.index ["price_at_sale"], name: "index_sales_on_price_at_sale"
     t.index ["product_id"], name: "index_sales_on_product_id"
     t.index ["transaction_id"], name: "index_sales_on_transaction_id", unique: true
     t.index ["user_id"], name: "index_sales_on_user_id"

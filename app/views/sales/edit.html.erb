@@ -1,6 +1,7 @@
+<!-- app/views/sales/edit.html.erb -->
 <div class="page-header">
   <h1>Edit Sale Transaction</h1>
-  <p>Update sale details for <%= @sale.transaction_id %></p>
+  <p>Update sale details for <code><%= @sale.transaction_id %></code></p>
 </div>
 
 <div class="card">
@@ -28,12 +29,12 @@
         
         <div class="form-group">
           <%= f.label :customer_phone, "Customer Phone" %>
-          <%= f.telephone_field :customer_phone, class: "form-control" %>
+          <%= f.telephone_field :customer_phone, class: "form-control", placeholder: "+265XXXXXXXXX" %>
         </div>
         
         <div class="form-group">
           <%= f.label :product_id, "Product *" %>
-          <%= f.collection_select :product_id, @products, :id, :name, 
+          <%= f.collection_select :product_id, @products, :id, :display_name, 
                 { prompt: "Select product" }, 
                 { class: "form-control", required: true, id: "product_select" } %>
         </div>
@@ -48,15 +49,16 @@
         <div class="form-group">
           <%= f.label :quantity, "Quantity *" %>
           <%= f.number_field :quantity, class: "form-control", step: "any", 
-                required: true, id: "sale_quantity" %>
+                required: true, id: "sale_quantity", min: 0.01 %>
         </div>
         
         <div class="form-group">
-          <%= f.label :unit_price, "Unit Price *" %>
+          <%= f.label :unit_price, "Unit Price" %>
           <%= f.number_field :unit_price, class: "form-control", step: "any", 
-                required: true, id: "sale_unit_price", readonly: true, 
+                id: "sale_unit_price", readonly: true, 
                 style: "background-color: #f1f5f9; cursor: not-allowed;" %>
-          <small style="color: #64748b;">Price is automatically set from product and cannot be edited</small>
+          <%= f.hidden_field :price_at_sale, id: "price_at_sale_input" %>
+          <small style="color: #64748b;">Price is locked at the time of sale and cannot be changed</small>
         </div>
         
         <div class="form-group">
@@ -66,7 +68,7 @@
         
         <div class="form-group full-width">
           <%= f.label :notes, "Notes" %>
-          <%= f.text_area :notes, class: "form-control", rows: 3 %>
+          <%= f.text_area :notes, class: "form-control", rows: 3, placeholder: "Additional notes about this sale..." %>
         </div>
         
         <div class="form-group full-width" style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem;">
@@ -84,47 +86,77 @@
 </div>
 
 <script>
-  // Product data with prices
-  const productPrices = {
-    <% @products.each do |product| %>
-      <%= product.id %>: <%= product.price %>,
-    <% end %>
-  };
-  
-  // Get form elements
-  const productSelect = document.getElementById('product_select');
-  const quantityInput = document.getElementById('sale_quantity');
-  const unitPriceInput = document.getElementById('sale_unit_price');
-  const totalDisplay = document.getElementById('total_amount_display');
-  
-  // Function to update unit price based on selected product
-  function updateUnitPrice() {
-    const productId = productSelect.value;
-    if (productId && productPrices[productId]) {
-      unitPriceInput.value = productPrices[productId];
-      calculateTotal();
-    }
-  }
-  
-  // Function to calculate total amount
-  function calculateTotal() {
-    const quantity = parseFloat(quantityInput.value) || 0;
-    const unitPrice = parseFloat(unitPriceInput.value) || 0;
-    const total = quantity * unitPrice;
-    totalDisplay.textContent = new Intl.NumberFormat('en-MW', { 
-      style: 'currency', 
-      currency: 'MWK' 
-    }).format(total);
-  }
-  
-  // Event listeners
-  productSelect.addEventListener('change', updateUnitPrice);
-  quantityInput.addEventListener('input', calculateTotal);
-  
-  // Initialize on page load
   document.addEventListener('DOMContentLoaded', function() {
-    if (productSelect.value && productPrices[productSelect.value]) {
-      unitPriceInput.value = productPrices[productSelect.value];
+    // Product data with prices
+    const productPrices = {
+      <% @products.each do |product| %>
+        <%= product.id %>: <%= product.price %>,
+      <% end %>
+    };
+    
+    // Get form elements
+    const productSelect = document.getElementById('product_select');
+    const quantityInput = document.getElementById('sale_quantity');
+    const unitPriceInput = document.getElementById('sale_unit_price');
+    const priceAtSaleInput = document.getElementById('price_at_sale_input');
+    const totalDisplay = document.getElementById('total_amount_display');
+    
+    // Store the original price_at_sale from the record
+    const originalPriceAtSale = <%= @sale.price_at_sale || @sale.unit_price %>;
+    
+    // Function to update unit price based on selected product
+    function updateUnitPrice() {
+      const productId = productSelect.value;
+      const currentPrice = parseFloat(priceAtSaleInput.value) || originalPriceAtSale;
+      
+      if (productId && productPrices[productId]) {
+        const price = productPrices[productId];
+        
+        // Check if product changed - if so, update price_at_sale
+        if (productId != <%= @sale.product_id %>) {
+          // Product changed, use new product price
+          unitPriceInput.value = price;
+          priceAtSaleInput.value = price;
+        } else {
+          // Same product, keep original price_at_sale
+          unitPriceInput.value = currentPrice;
+          priceAtSaleInput.value = currentPrice;
+        }
+        calculateTotal();
+      } else {
+        unitPriceInput.value = currentPrice;
+        priceAtSaleInput.value = currentPrice;
+        calculateTotal();
+      }
+    }
+    
+    // Function to calculate total amount
+    function calculateTotal() {
+      const quantity = parseFloat(quantityInput.value) || 0;
+      const unitPrice = parseFloat(unitPriceInput.value) || 0;
+      const total = quantity * unitPrice;
+      totalDisplay.textContent = new Intl.NumberFormat('en-MW', { 
+        style: 'currency', 
+        currency: 'MWK',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(total);
+    }
+    
+    // Event listeners
+    if (productSelect) {
+      productSelect.addEventListener('change', updateUnitPrice);
+    }
+    
+    if (quantityInput) {
+      quantityInput.addEventListener('input', calculateTotal);
+    }
+    
+    // Initialize on page load
+    if (productSelect && productSelect.value) {
+      // Set initial price_at_sale from the record
+      priceAtSaleInput.value = originalPriceAtSale;
+      unitPriceInput.value = originalPriceAtSale;
       calculateTotal();
     }
   });
