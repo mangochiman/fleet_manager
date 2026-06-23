@@ -439,28 +439,28 @@
     <div class="db-stat green">
       <div class="db-stat-label">Total Revenue</div>
       <div class="db-stat-value"><%= number_to_currency(@total_revenue) %></div>
-      <div class="db-stat-sub">↑ +12% from last month</div>
+      <div class="db-stat-sub">Total invoice value</div>
       <div class="db-stat-icon">💰</div>
     </div>
 
     <div class="db-stat red">
       <div class="db-stat-label">Total Expenses</div>
       <div class="db-stat-value"><%= number_to_currency(@total_expenses) %></div>
-      <div class="db-stat-sub">↓ Within budget</div>
+      <div class="db-stat-sub">All vehicle expenses</div>
       <div class="db-stat-icon">📊</div>
     </div>
 
     <div class="db-stat green">
       <div class="db-stat-label">Net Profit</div>
       <div class="db-stat-value"><%= number_to_currency(@net_profit) %></div>
-      <div class="db-stat-sub">↑ +8% growth</div>
+      <div class="db-stat-sub">Revenue - Expenses</div>
       <div class="db-stat-icon">🎯</div>
     </div>
 
     <div class="db-stat amber">
       <div class="db-stat-label">Outstanding</div>
       <div class="db-stat-value"><%= number_to_currency(@outstanding_amount) %></div>
-      <div class="db-stat-sub"><%= @outstanding_count %> pending</div>
+      <div class="db-stat-sub"><%= @outstanding_count %> unpaid transactions</div>
       <div class="db-stat-icon">⏳</div>
     </div>
   </div>
@@ -471,25 +471,25 @@
       <div class="status-icon">⏳</div>
       <div class="status-label">Outstanding</div>
       <div class="status-value"><%= number_to_currency(@outstanding_amount) %></div>
-      <div class="status-count"><%= @outstanding_count %> transactions</div>
+      <div class="status-count">Balance owed</div>
     </div>
     <div class="db-status-card partial">
       <div class="status-icon">🔄</div>
       <div class="status-label">Partial</div>
       <div class="status-value"><%= number_to_currency(@partial_amount) %></div>
-      <div class="status-count"><%= @partial_count %> transactions</div>
+      <div class="status-count">Balance owed</div>
     </div>
     <div class="db-status-card paid">
       <div class="status-icon">✅</div>
       <div class="status-label">Paid</div>
       <div class="status-value"><%= number_to_currency(@paid_amount) %></div>
-      <div class="status-count"><%= @paid_count %> transactions</div>
+      <div class="status-count">Amount collected</div>
     </div>
     <div class="db-status-card banked">
       <div class="status-icon">🏦</div>
       <div class="status-label">Banked</div>
       <div class="status-value"><%= number_to_currency(@banked_amount) %></div>
-      <div class="status-count"><%= @banked_count %> transactions</div>
+      <div class="status-count">Amount deposited</div>
     </div>
   </div>
 

@@ -58,11 +58,17 @@ class SalesController < ApplicationController
       @sales = @sales.where(payment_status: params[:status])
     end
     
-    # Stats (unfiltered totals)
+    # Stats (using correct logic for each status)
     @total_sales = @sales.sum(:total_amount)
-    @outstanding_sales = @sales.outstanding.sum(:total_amount)
-    @partial_sales = @sales.partial.sum(:total_amount)
-    @paid_sales = @sales.paid.sum(:total_amount)
+    
+    # Outstanding: Show remaining balance (what's still owed)
+    @outstanding_sales = @sales.outstanding.sum("total_amount - COALESCE(paid_amount, 0)")
+    
+    # Partial: Show remaining balance (what's still owed)
+    @partial_sales = @sales.partial.sum("total_amount - COALESCE(paid_amount, 0)")
+    
+    # Paid: Show total amount paid (what was collected)
+    @paid_sales = @sales.paid.sum(:paid_amount)
   end
   
   def show

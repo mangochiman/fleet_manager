@@ -9,17 +9,21 @@ class DashboardController < ApplicationController
     @total_expenses = Expense.sum(:amount)
     @net_profit = @total_revenue - @total_expenses
     
-    # Sales Status Breakdown
-    @outstanding_amount = Sale.outstanding.sum(:total_amount)
+    # Sales Status Breakdown - Using correct logic
+    # Outstanding: Show remaining balance (what's still owed)
+    @outstanding_amount = Sale.outstanding.sum("total_amount - COALESCE(paid_amount, 0)")
     @outstanding_count = Sale.outstanding.count
     
-    @partial_amount = Sale.partial.sum(:total_amount)
+    # Partial: Show remaining balance (what's still owed)
+    @partial_amount = Sale.partial.sum("total_amount - COALESCE(paid_amount, 0)")
     @partial_count = Sale.partial.count
     
-    @paid_amount = Sale.paid.sum(:total_amount)
+    # Paid: Show total amount paid (what was collected)
+    @paid_amount = Sale.paid.sum(:paid_amount)
     @paid_count = Sale.paid.count
     
-    @banked_amount = Sale.banked.sum(:total_amount)
+    # Banked: Show total amount banked (what was deposited)
+    @banked_amount = Sale.banked.sum(:paid_amount)
     @banked_count = Sale.banked.count
     
     # Recent data

@@ -1,3 +1,4 @@
+# app/controllers/reports_controller.rb
 class ReportsController < ApplicationController
   before_action :authenticate_user!
   before_action :authorize_manager!, except: [:index]
@@ -17,8 +18,14 @@ class ReportsController < ApplicationController
     @total_revenue = Sale.where(transaction_date: @start_date..@end_date).sum(:total_amount)
     @total_expenses = Expense.where(expense_date: @start_date..@end_date).sum(:amount)
     @net_profit = @total_revenue - @total_expenses
-    @outstanding_amount = Sale.outstanding.where(transaction_date: @start_date..@end_date).sum(:total_amount)
-    @outstanding_count = Sale.outstanding.where(transaction_date: @start_date..@end_date).count
+    
+    # Outstanding: Show remaining balance (what's still owed)
+    @outstanding_amount = Sale.outstanding
+                              .where(transaction_date: @start_date..@end_date)
+                              .sum("total_amount - COALESCE(paid_amount, 0)")
+    @outstanding_count = Sale.outstanding
+                            .where(transaction_date: @start_date..@end_date)
+                            .count
     
     # Sales by product - using find_by_sql to avoid GROUP BY issues
     @sales_by_product = Sale.select('product_id, SUM(total_amount) as total')
@@ -67,9 +74,33 @@ class ReportsController < ApplicationController
                         .group(:payment_status)
                         .count
     
-    @status_amounts = Sale.where(transaction_date: @start_date..@end_date)
-                          .group(:payment_status)
-                          .sum(:total_amount)
+    # Status amounts - using correct logic for each status
+    # Outstanding: remaining balance
+    outstanding_amount = Sale.outstanding
+                            .where(transaction_date: @start_date..@end_date)
+                            .sum("total_amount - COALESCE(paid_amount, 0)")
+    
+    # Partial: remaining balance
+    partial_amount = Sale.partial
+                        .where(transaction_date: @start_date..@end_date)
+                        .sum("total_amount - COALESCE(paid_amount, 0)")
+    
+    # Paid: amount paid (collected)
+    paid_amount = Sale.paid
+                     .where(transaction_date: @start_date..@end_date)
+                     .sum(:paid_amount)
+    
+    # Banked: amount banked (deposited)
+    banked_amount = Sale.banked
+                       .where(transaction_date: @start_date..@end_date)
+                       .sum(:paid_amount)
+    
+    @status_amounts = {
+      'outstanding' => outstanding_amount,
+      'partial' => partial_amount,
+      'paid' => paid_amount,
+      'banked' => banked_amount
+    }
     
     respond_to do |format|
       format.html
@@ -194,14 +225,15 @@ class ReportsController < ApplicationController
     @sales = Sale.outstanding.includes(:user, :vehicle, :product)
                  .order(transaction_date: :asc)
     
-    @total_outstanding = @sales.sum(:total_amount)
+    # Outstanding: Show remaining balance (what's still owed)
+    @total_outstanding = @sales.sum("total_amount - COALESCE(paid_amount, 0)")
     @total_customers = @sales.select(:customer_name).distinct.count
     
     @aging_summary = {
-      '0-30 days' => @sales.where('transaction_date >= ?', 30.days.ago).sum(:total_amount),
-      '31-60 days' => @sales.where(transaction_date: 60.days.ago...30.days.ago).sum(:total_amount),
-      '61-90 days' => @sales.where(transaction_date: 90.days.ago...60.days.ago).sum(:total_amount),
-      '90+ days' => @sales.where('transaction_date <= ?', 90.days.ago).sum(:total_amount)
+      '0-30 days' => @sales.where('transaction_date >= ?', 30.days.ago).sum("total_amount - COALESCE(paid_amount, 0)"),
+      '31-60 days' => @sales.where(transaction_date: 60.days.ago...30.days.ago).sum("total_amount - COALESCE(paid_amount, 0)"),
+      '61-90 days' => @sales.where(transaction_date: 90.days.ago...60.days.ago).sum("total_amount - COALESCE(paid_amount, 0)"),
+      '90+ days' => @sales.where('transaction_date <= ?', 90.days.ago).sum("total_amount - COALESCE(paid_amount, 0)")
     }
     
     respond_to do |format|
