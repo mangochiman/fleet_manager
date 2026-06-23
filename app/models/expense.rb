@@ -46,7 +46,7 @@ class Expense < ApplicationRecord
   end
 
   def payment_mode_name
-    PAYMENT_MODES[payment_mode] || payment_mode.titleize
+    PAYMENT_MODES[payment_mode] || payment_mode.titleize rescue ''
   end
 
   def payment_status_name
