@@ -1,9 +1,14 @@
 # app/models/sale.rb
 class Sale < ApplicationRecord
+  include Auditable
+  
   belongs_to :user
   belongs_to :vehicle
   belongs_to :product
   has_many :payment_histories, dependent: :destroy
+
+  # PaperTrail for versioning
+  has_paper_trail
 
   before_validation :generate_transaction_id, on: :create
   before_validation :calculate_totals, on: :create
@@ -16,6 +21,11 @@ class Sale < ApplicationRecord
   validates :total_amount, presence: true, numericality: { greater_than: 0 }
   validates :payment_status, inclusion: { in: %w[outstanding partial paid banked] }
   validates :paid_amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+
+  # Callbacks for audit logging
+  after_create :log_creation
+  after_update :log_update
+  after_destroy :log_destroy
 
   # Status helper methods
   def outstanding?
@@ -151,5 +161,33 @@ class Sale < ApplicationRecord
 
   def set_default_dates
     self.transaction_date ||= Date.current
+  end
+
+  # Audit logging methods
+  def log_creation
+    log_activity('create_sale', "Sale #{transaction_id} created. Customer: #{customer_name}, Amount: #{total_amount}, Status: #{payment_status}")
+  end
+
+  def log_update
+    if saved_changes.present?
+      # Skip logging if only updated_at changed
+      return if saved_changes.keys == ['updated_at']
+      
+      changes = saved_changes.map do |attr, (old_val, new_val)|
+        # Skip timestamps for cleaner logs
+        next if attr == 'updated_at'
+        "#{attr}: #{old_val} → #{new_val}"
+      end.compact.join(", ")
+      
+      log_activity('update_sale', "Sale #{transaction_id} updated: #{changes}") if changes.present?
+    end
+  end
+
+  def log_destroy
+    log_activity('delete_sale', "Sale #{transaction_id} deleted. Customer: #{customer_name}, Amount: #{total_amount}, Status: #{payment_status}")
+  end
+
+  def log_details
+    "Sale #{transaction_id} - Customer: #{customer_name}, Amount: #{total_amount}"
   end
 end

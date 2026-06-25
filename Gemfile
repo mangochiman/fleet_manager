@@ -13,7 +13,7 @@ gem 'caxlsx_rails'
 # Export to PDF
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
-
+gem 'paper_trail'
 # Charts (we'll use Chart.js via CDN)
 # Charts will be added via CDN in the views, no gem needed
 

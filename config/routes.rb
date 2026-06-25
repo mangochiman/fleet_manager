@@ -55,6 +55,13 @@ Rails.application.routes.draw do
   get "exports/sales", to: "exports#sales"
   get "exports/expenses", to: "exports#expenses"
   get "exports/outstanding", to: "exports#outstanding"
+  
+  # Activity Logs (Super Admin only)
+  resources :activity_logs, only: [:index, :show] do
+    collection do
+      get :export
+    end
+  end
 
   # Error pages (must be at the bottom)
   match "/404", to: "errors#not_found", via: :all

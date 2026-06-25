@@ -1,6 +1,12 @@
+# app/models/product.rb
 class Product < ApplicationRecord
+  include Auditable
+  
   # Associations
   has_many :sales, dependent: :restrict_with_exception
+  
+  # PaperTrail for versioning
+  has_paper_trail
   
   # Validations
   validates :name, presence: true, uniqueness: true
@@ -14,6 +20,9 @@ class Product < ApplicationRecord
   
   # Callbacks
   before_validation :set_defaults
+  after_create :log_creation
+  after_update :log_update
+  after_destroy :log_destroy
   
   # Methods
   def active?
@@ -22,6 +31,7 @@ class Product < ApplicationRecord
   
   def toggle_status!
     update(active: !active)
+    log_activity('toggle_product', "Product #{name} status changed to #{active? ? 'active' : 'inactive'}")
   end
   
   def total_sales_count
@@ -40,5 +50,33 @@ class Product < ApplicationRecord
   
   def set_defaults
     self.active = true if active.nil?
+  end
+
+  # Audit logging methods
+  def log_creation
+    log_activity('create_product', "Product #{name} created. Price: #{price}, Unit: #{unit}, Status: #{active? ? 'active' : 'inactive'}")
+  end
+
+  def log_update
+    if saved_changes.present?
+      # Skip logging if only updated_at changed
+      return if saved_changes.keys == ['updated_at']
+      
+      changes = saved_changes.map do |attr, (old_val, new_val)|
+        # Skip timestamps for cleaner logs
+        next if attr == 'updated_at'
+        "#{attr}: #{old_val} → #{new_val}"
+      end.compact.join(", ")
+      
+      log_activity('update_product', "Product #{name} updated: #{changes}") if changes.present?
+    end
+  end
+
+  def log_destroy
+    log_activity('delete_product', "Product #{name} deleted. Price: #{price}, Unit: #{unit}, Status: #{active? ? 'active' : 'inactive'}")
+  end
+
+  def log_details
+    "Product #{name} - Price: #{price}, Unit: #{unit}"
   end
 end

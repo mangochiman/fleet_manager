@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_23_052049) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_25_140314) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -47,7 +47,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_23_052049) do
     t.integer "resource_id"
     t.string "resource_type"
     t.datetime "updated_at", null: false
+    t.text "user_agent"
     t.bigint "user_id", null: false
+    t.index ["action"], name: "index_activity_logs_on_action"
+    t.index ["created_at"], name: "index_activity_logs_on_created_at"
+    t.index ["ip_address"], name: "index_activity_logs_on_ip_address"
+    t.index ["resource_type", "resource_id"], name: "index_activity_logs_on_resource_type_and_resource_id"
     t.index ["user_id"], name: "index_activity_logs_on_user_id"
   end
 
@@ -154,6 +159,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_23_052049) do
     t.datetime "updated_at", null: false
     t.integer "year"
     t.index ["registration_number"], name: "index_vehicles_on_registration_number", unique: true
+  end
+
+  create_table "versions", charset: "utf8mb4", collation: "utf8mb4_general_ci", force: :cascade do |t|
+    t.datetime "created_at"
+    t.string "event", null: false
+    t.bigint "item_id", null: false
+    t.string "item_type", limit: 191, null: false
+    t.text "object", size: :long
+    t.string "whodunnit"
+    t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

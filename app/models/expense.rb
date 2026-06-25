@@ -1,8 +1,13 @@
 # app/models/expense.rb
 class Expense < ApplicationRecord
+  include Auditable
+  
   belongs_to :vehicle
   belongs_to :recorded_by, class_name: 'User', optional: true
   has_one_attached :receipt
+
+  # PaperTrail for versioning
+  has_paper_trail
 
   validates :category, presence: true
   validates :amount, presence: true, numericality: { greater_than: 0 }
@@ -41,6 +46,27 @@ class Expense < ApplicationRecord
     'cancelled' => 'Cancelled'
   }.freeze
 
+  # Scopes
+  scope :pending, -> { where(payment_status: 'pending') }
+  scope :paid, -> { where(payment_status: 'paid') }
+  scope :cancelled, -> { where(payment_status: 'cancelled') }
+  scope :unpaid, -> { where(payment_status: ['pending', 'cancelled']) }
+  scope :by_payment_status, ->(status) { where(payment_status: status) if status.present? }
+  scope :by_vehicle, ->(vehicle_id) { where(vehicle_id: vehicle_id) }
+  scope :by_date_range, ->(start_date, end_date) { where(expense_date: start_date..end_date) }
+  scope :by_category, ->(category) { where(category: category) }
+  scope :by_payment_mode, ->(payment_mode) { where(payment_mode: payment_mode) }
+  scope :this_month, -> { where(expense_date: Date.current.beginning_of_month..Date.current.end_of_month) }
+  scope :this_year, -> { where(expense_date: Date.current.beginning_of_year..Date.current.end_of_year) }
+
+  before_validation :set_default_date
+  before_validation :set_default_payment_status, on: :create
+
+  # Callbacks for audit logging
+  after_create :log_creation
+  after_update :log_update
+  after_destroy :log_destroy
+
   def category_name
     CATEGORIES[category] || category.titleize
   end
@@ -67,6 +93,25 @@ class Expense < ApplicationRecord
 
   def editable?
     pending?
+  end
+
+  def status_badge_class
+    case payment_status
+    when 'paid'
+      'badge-paid'
+    when 'cancelled'
+      'badge-inactive'
+    else
+      'badge-outstanding'
+    end
+  end
+
+  def receipt_attached?
+    receipt.attached?
+  end
+
+  def display_amount
+    ActionController::Base.helpers.number_to_currency(amount)
   end
 
   def mark_as_paid!(reference: nil, updated_by: nil)
@@ -140,41 +185,6 @@ class Expense < ApplicationRecord
     false
   end
 
-  def status_badge_class
-    case payment_status
-    when 'paid'
-      'badge-paid'
-    when 'cancelled'
-      'badge-inactive'
-    else
-      'badge-outstanding'
-    end
-  end
-
-  # Scopes
-  scope :pending, -> { where(payment_status: 'pending') }
-  scope :paid, -> { where(payment_status: 'paid') }
-  scope :cancelled, -> { where(payment_status: 'cancelled') }
-  scope :unpaid, -> { where(payment_status: ['pending', 'cancelled']) }
-  scope :by_payment_status, ->(status) { where(payment_status: status) if status.present? }
-  scope :by_vehicle, ->(vehicle_id) { where(vehicle_id: vehicle_id) }
-  scope :by_date_range, ->(start_date, end_date) { where(expense_date: start_date..end_date) }
-  scope :by_category, ->(category) { where(category: category) }
-  scope :by_payment_mode, ->(payment_mode) { where(payment_mode: payment_mode) }
-  scope :this_month, -> { where(expense_date: Date.current.beginning_of_month..Date.current.end_of_month) }
-  scope :this_year, -> { where(expense_date: Date.current.beginning_of_year..Date.current.end_of_year) }
-
-  before_validation :set_default_date
-  before_validation :set_default_payment_status, on: :create
-
-  def receipt_attached?
-    receipt.attached?
-  end
-
-  def display_amount
-    ActionController::Base.helpers.number_to_currency(amount)
-  end
-
   private
 
   def set_default_date
@@ -183,5 +193,38 @@ class Expense < ApplicationRecord
 
   def set_default_payment_status
     self.payment_status ||= 'pending'
+  end
+
+  # Audit logging methods
+  def log_creation
+    log_activity('create_expense', "Expense created. Vehicle: #{vehicle.registration_number}, Category: #{category_name}, Amount: #{display_amount}")
+  end
+
+  def log_update
+    if saved_changes.present?
+      # Skip logging if only updated_at changed
+      return if saved_changes.keys == ['updated_at']
+      
+      changes = saved_changes.map do |attr, (old_val, new_val)|
+        # Skip timestamps for cleaner logs
+        next if attr == 'updated_at'
+        # Format amount nicely
+        if attr == 'amount'
+          old_val = ActionController::Base.helpers.number_to_currency(old_val)
+          new_val = ActionController::Base.helpers.number_to_currency(new_val)
+        end
+        "#{attr}: #{old_val} → #{new_val}"
+      end.compact.join(", ")
+      
+      log_activity('update_expense', "Expense updated: #{changes}") if changes.present?
+    end
+  end
+
+  def log_destroy
+    log_activity('delete_expense', "Expense deleted. Vehicle: #{vehicle.registration_number}, Category: #{category_name}, Amount: #{display_amount}")
+  end
+
+  def log_details
+    "Expense - Vehicle: #{vehicle.registration_number}, Category: #{category_name}, Amount: #{display_amount}"
   end
 end

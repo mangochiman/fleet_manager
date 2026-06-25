@@ -1,3 +1,4 @@
+<!-- app/views/layouts/_sidebar.html.erb -->
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
@@ -59,6 +60,14 @@
       <%= link_to users_path, class: "nav-link #{'active' if controller_name == 'users'}" do %>
         <span class="nav-icon">👥</span>
         <span>Users</span>
+      <% end %>
+    <% end %>
+    
+    <!-- Activity Logs - Only Super Admins -->
+    <% if current_user.super_admin? %>
+      <%= link_to activity_logs_path, class: "nav-link #{'active' if controller_name == 'activity_logs'}" do %>
+        <span class="nav-icon">📋</span>
+        <span>Activity Logs</span>
       <% end %>
     <% end %>
     

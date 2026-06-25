@@ -1,8 +1,14 @@
+# app/models/vehicle.rb
 class Vehicle < ApplicationRecord
+  include Auditable
+  
   # Associations
   has_many :users, dependent: :nullify
   has_many :sales, dependent: :restrict_with_exception
   has_many :expenses, dependent: :restrict_with_exception
+  
+  # PaperTrail for versioning
+  has_paper_trail
   
   # Validations
   validates :registration_number, presence: true, uniqueness: true
@@ -15,6 +21,11 @@ class Vehicle < ApplicationRecord
   scope :active, -> { where(status: 'active') }
   scope :in_maintenance, -> { where(status: 'maintenance') }
   scope :retired, -> { where(status: 'retired') }
+  
+  # Callbacks for audit logging
+  after_create :log_creation
+  after_update :log_update
+  after_destroy :log_destroy
   
   # Methods
   def total_sales
@@ -51,5 +62,35 @@ class Vehicle < ApplicationRecord
     else
       'badge-inactive'
     end
+  end
+
+  private
+
+  # Audit logging methods
+  def log_creation
+    log_activity('create_vehicle', "Vehicle #{registration_number} created. Make: #{make}, Model: #{model}, Year: #{year}, Status: #{status}")
+  end
+
+  def log_update
+    if saved_changes.present?
+      # Skip logging if only updated_at changed
+      return if saved_changes.keys == ['updated_at']
+      
+      changes = saved_changes.map do |attr, (old_val, new_val)|
+        # Skip timestamps for cleaner logs
+        next if attr == 'updated_at'
+        "#{attr}: #{old_val} → #{new_val}"
+      end.compact.join(", ")
+      
+      log_activity('update_vehicle', "Vehicle #{registration_number} updated: #{changes}") if changes.present?
+    end
+  end
+
+  def log_destroy
+    log_activity('delete_vehicle', "Vehicle #{registration_number} deleted. Make: #{make}, Model: #{model}, Year: #{year}, Status: #{status}")
+  end
+
+  def log_details
+    "Vehicle #{registration_number} - #{make} #{model} (#{year})"
   end
 end
