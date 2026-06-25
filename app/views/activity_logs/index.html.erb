@@ -1,0 +1,145 @@
+<!-- app/views/activity_logs/index.html.erb -->
+<div class="page-header">
+  <h1>Activity Logs</h1>
+  <p>System audit trail - Track all actions performed in the system</p>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom: 1.5rem;">
+  <div class="card-header">
+    <h3>Filter Logs</h3>
+  </div>
+  <div class="card-body">
+    <%= form_tag activity_logs_path, method: :get, class: "form" do %>
+      <div class="grid grid-3">
+        <div class="form-group">
+          <%= label_tag :action_type, "Action Type" %>
+          <%= select_tag :action_type, 
+                options_for_select([["All Actions", ""]] + ActivityLog::ACTION_TYPES.map { |k, v| [v, k] }, params[:action_type]),
+                class: "form-control" %>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :user_id, "User" %>
+          <%= select_tag :user_id, 
+                options_for_select([["All Users", ""]] + @users.map { |u| [u.name, u.id] }, params[:user_id]),
+                class: "form-control" %>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :resource_type, "Resource Type" %>
+          <%= select_tag :resource_type, 
+                options_for_select([["All Resources", ""]] + @resource_types.map { |r| [r, r] }, params[:resource_type]),
+                class: "form-control" %>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :start_date, "Start Date" %>
+          <%= date_field_tag :start_date, params[:start_date], class: "form-control" %>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :end_date, "End Date" %>
+          <%= date_field_tag :end_date, params[:end_date], class: "form-control" %>
+        </div>
+        
+        <div class="form-group">
+          <%= label_tag :search, "Search" %>
+          <%= text_field_tag :search, params[:search], class: "form-control", placeholder: "Search in details..." %>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
+        <%= submit_tag "Apply Filters", class: "btn btn-primary" %>
+        <%= link_to "Clear Filters", activity_logs_path, class: "btn btn-secondary" %>
+        <%= link_to "Export CSV", activity_logs_export_path(params: request.query_parameters), class: "btn btn-success" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Stats Summary -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
+    <div style="font-size: 0.75rem; color: #64748b;">Total Logs</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #1e293b;"><%= @activity_logs.total_entries %></div>
+  </div>
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
+    <div style="font-size: 0.75rem; color: #64748b;">Today</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #1e293b;"><%= ActivityLog.where(created_at: Date.current.beginning_of_day..Date.current.end_of_day).count %></div>
+  </div>
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
+    <div style="font-size: 0.75rem; color: #64748b;">This Week</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #1e293b;"><%= ActivityLog.this_week.count %></div>
+  </div>
+  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
+    <div style="font-size: 0.75rem; color: #64748b;">This Month</div>
+    <div style="font-size: 1.5rem; font-weight: 700; color: #1e293b;"><%= ActivityLog.this_month.count %></div>
+  </div>
+</div>
+
+<!-- Activity Logs Table -->
+<div class="card">
+  <div class="card-header">
+    <h3>All Activities</h3>
+    <span style="font-size: 0.875rem; color: #64748b;">
+      <%= @activity_logs.total_entries %> records found
+    </span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Resource</th>
+            <th>Details</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if @activity_logs.any? %>
+            <% @activity_logs.each do |log| %>
+              <tr>
+                <td><%= log.display_time %></td>
+                <td><%= log.user_name %></td>
+                <td>
+                  <span class="badge badge-<%= log.action_color %>">
+                    <%= log.action_name %>
+                  </span>
+                </td>
+                <td>
+                  <% if log.resource_link %>
+                    <%= link_to log.resource_display_name, log.resource_link, class: "link" %>
+                  <% else %>
+                    <%= log.resource_display_name %>
+                  <% end %>
+                </td>
+                <td style="max-width: 300px; word-wrap: break-word;"><%= log.details %></td>
+                <td><%= log.ip_address || '—' %></td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2rem; color: #64748b;">
+                No activity logs found matching your filters.
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <% if @activity_logs.total_entries > 0 %>
+    <div style="padding: 1rem; border-top: 1px solid #e2e8f0;">
+      <%= will_paginate @activity_logs,
+            renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+            previous_label: '← Previous',
+            next_label: 'Next →',
+            class: 'pagination' %>
+    </div>
+  <% end %>
+</div>

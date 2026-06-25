@@ -1,0 +1,136 @@
+<!-- app/views/activity_logs/show.html.erb -->
+<div class="page-header">
+  <h1>Activity Log Details</h1>
+  <p>Audit trail record #<%= @activity_log.id %></p>
+</div>
+
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+  <%= link_to "← Back to Activity Logs", activity_logs_path, class: "btn btn-secondary btn-sm" %>
+  <%= link_to "Export All", activity_logs_export_path, class: "btn btn-success btn-sm" %>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr; gap: 1rem; max-width: 1200px; margin: 0 auto;">
+  
+  <!-- Log Info -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">LOG INFORMATION</h3>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+      <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+        <span style="color: #64748b; font-weight: 500;">ID:</span>
+        <span><strong>#<%= @activity_log.id %></strong></span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+        <span style="color: #64748b; font-weight: 500;">Date & Time:</span>
+        <span><strong><%= @activity_log.display_date %></strong></span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+        <span style="color: #64748b; font-weight: 500;">User:</span>
+        <span><strong><%= @activity_log.user_name %></strong></span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+        <span style="color: #64748b; font-weight: 500;">Action:</span>
+        <span>
+          <span class="badge badge-<%= @activity_log.action_color %>">
+            <%= @activity_log.action_name %>
+          </span>
+        </span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+        <span style="color: #64748b; font-weight: 500;">Resource Type:</span>
+        <span><strong><%= @activity_log.resource_type %></strong></span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+        <span style="color: #64748b; font-weight: 500;">Resource ID:</span>
+        <span>
+          <% if @activity_log.resource_link %>
+            <%= link_to "##{@activity_log.resource_id}", @activity_log.resource_link, class: "link" %>
+          <% else %>
+            <strong>#<%= @activity_log.resource_id %></strong>
+          <% end %>
+        </span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+        <span style="color: #64748b; font-weight: 500;">IP Address:</span>
+        <span><strong><%= @activity_log.ip_address || '—' %></strong></span>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid #f1f5f9;">
+        <span style="color: #64748b; font-weight: 500;">User Agent:</span>
+        <span style="font-size: 0.75rem; word-break: break-all; max-width: 200px; text-align: right;">
+          <strong><%= @activity_log.user_agent || '—' %></strong>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">DETAILS</h3>
+    <div style="padding: 1rem; background: #f8fafc; border-radius: 0.5rem; font-size: 0.875rem; word-wrap: break-word; white-space: pre-wrap; min-height: 60px;">
+      <%= @activity_log.details %>
+    </div>
+  </div>
+
+  <!-- Related Logs -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">RELATED LOGS</h3>
+    
+    <% if @activity_log.resource_type && @activity_log.resource_id %>
+      <% related_logs = ActivityLog.where(resource_type: @activity_log.resource_type, resource_id: @activity_log.resource_id)
+                                  .where.not(id: @activity_log.id)
+                                  .order(created_at: :desc)
+                                  .limit(10) %>
+      
+      <% if related_logs.any? %>
+        <div style="overflow-x: auto;">
+          <table class="data-table compact">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% related_logs.each do |log| %>
+                <tr>
+                  <td><%= log.display_time %></td>
+                  <td><%= log.user_name %></td>
+                  <td>
+                    <span class="badge badge-<%= log.action_color %>">
+                      <%= log.action_name %>
+                    </span>
+                  </td>
+                  <td style="max-width: 300px; word-wrap: break-word;"><%= log.details %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div style="text-align: center; padding: 1.5rem; color: #64748b;">
+          No related logs found for this resource.
+        </div>
+      <% end %>
+    <% else %>
+      <div style="text-align: center; padding: 1.5rem; color: #64748b;">
+        No resource associated with this log.
+      </div>
+    <% end %>
+  </div>
+
+</div>
+
+<!-- Action Buttons at Bottom -->
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; justify-content: center;">
+  <%= link_to "← Back to Activity Logs", activity_logs_path, class: "btn btn-secondary" %>
+  <%= link_to "📋 View All Logs", activity_logs_path, class: "btn btn-primary" %>
+</div>

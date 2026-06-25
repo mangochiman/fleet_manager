@@ -1,0 +1,194 @@
+<!-- app/views/activity_logs/export.html.erb -->
+<div class="page-header">
+  <h1>Export Activity Logs</h1>
+  <p>Download activity logs in various formats</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto;">
+  
+  <!-- Export Options -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">EXPORT OPTIONS</h3>
+    
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <!-- CSV Export -->
+      <div style="padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border-left: 3px solid #10b981;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong style="font-size: 1rem;">CSV Export</strong>
+            <p style="font-size: 0.75rem; color: #64748b; margin: 0.25rem 0 0 0;">
+              Download logs in CSV format for Excel or Google Sheets
+            </p>
+          </div>
+          <%= link_to activity_logs_export_path(format: :csv, params: request.query_parameters), 
+                class: "btn btn-success btn-sm" do %>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; margin-right: 0.25rem;">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Download CSV
+          <% end %>
+        </div>
+        <div style="margin-top: 0.5rem; font-size: 0.7rem; color: #94a3b8;">
+          <span>Includes: Date, User, Action, Resource, Details, IP Address</span>
+        </div>
+      </div>
+      
+      <!-- PDF Export (Future) -->
+      <div style="padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border-left: 3px solid #ef4444; opacity: 0.6;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong style="font-size: 1rem;">PDF Export</strong>
+            <p style="font-size: 0.75rem; color: #64748b; margin: 0.25rem 0 0 0;">
+              Download logs in PDF format for printing and archiving
+            </p>
+          </div>
+          <span class="badge badge-inactive">Coming Soon</span>
+        </div>
+      </div>
+      
+      <!-- Excel Export (Future) -->
+      <div style="padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border-left: 3px solid #2563eb; opacity: 0.6;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong style="font-size: 1rem;">Excel Export</strong>
+            <p style="font-size: 0.75rem; color: #64748b; margin: 0.25rem 0 0 0;">
+              Download logs in Excel format with formatting
+            </p>
+          </div>
+          <span class="badge badge-inactive">Coming Soon</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current Filters Summary -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">CURRENT FILTERS</h3>
+    
+    <% if params[:action_type].present? || params[:user_id].present? || params[:resource_type].present? || 
+          params[:start_date].present? || params[:end_date].present? || params[:search].present? %>
+      
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <% if params[:action_type].present? %>
+          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.75rem;">Action Type:</span>
+            <span style="font-weight: 500; font-size: 0.75rem;"><%= ActivityLog::ACTION_TYPES[params[:action_type]] || params[:action_type] %></span>
+          </div>
+        <% end %>
+        
+        <% if params[:user_id].present? %>
+          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.75rem;">User:</span>
+            <span style="font-weight: 500; font-size: 0.75rem;"><%= User.find_by(id: params[:user_id])&.name || "User ##{params[:user_id]}" %></span>
+          </div>
+        <% end %>
+        
+        <% if params[:resource_type].present? %>
+          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.75rem;">Resource Type:</span>
+            <span style="font-weight: 500; font-size: 0.75rem;"><%= params[:resource_type] %></span>
+          </div>
+        <% end %>
+        
+        <% if params[:start_date].present? %>
+          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.75rem;">Start Date:</span>
+            <span style="font-weight: 500; font-size: 0.75rem;"><%= Date.parse(params[:start_date]).strftime("%B %d, %Y") rescue params[:start_date] %></span>
+          </div>
+        <% end %>
+        
+        <% if params[:end_date].present? %>
+          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.75rem;">End Date:</span>
+            <span style="font-weight: 500; font-size: 0.75rem;"><%= Date.parse(params[:end_date]).strftime("%B %d, %Y") rescue params[:end_date] %></span>
+          </div>
+        <% end %>
+        
+        <% if params[:search].present? %>
+          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
+            <span style="color: #64748b; font-size: 0.75rem;">Search:</span>
+            <span style="font-weight: 500; font-size: 0.75rem;">"<%= params[:search] %>"</span>
+          </div>
+        <% end %>
+      </div>
+      
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+        <%= link_to "Clear All Filters", activity_logs_export_path, class: "btn btn-secondary btn-sm", style: "width: 100%; text-align: center;" %>
+      </div>
+      
+    <% else %>
+      <div style="text-align: center; padding: 1.5rem; color: #64748b;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+        <p>No filters applied</p>
+        <p style="font-size: 0.75rem;">All logs will be exported</p>
+      </div>
+    <% end %>
+    
+    <!-- Record Count -->
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; text-align: center;">
+      <span style="font-size: 0.75rem; color: #64748b;">Records to export:</span>
+      <span style="font-size: 1.25rem; font-weight: 700; color: #1e293b; display: block;"><%= @activity_logs.try(:count) || 0 %></span>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">QUICK ACTIONS</h3>
+    
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <%= link_to activity_logs_path, class: "btn btn-secondary", style: "width: 100%; text-align: center;" do %>
+        ← Back to Activity Logs
+      <% end %>
+      
+      <%= link_to activity_logs_export_path(format: :csv, params: request.query_parameters), 
+            class: "btn btn-success", style: "width: 100%; text-align: center;" do %>
+        ⬇️ Download All (CSV)
+      <% end %>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+        <%= link_to activity_logs_path(start_date: Date.current.beginning_of_week), 
+              class: "btn btn-secondary btn-sm", style: "text-align: center;" do %>
+          This Week
+        <% end %>
+        <%= link_to activity_logs_path(start_date: Date.current.beginning_of_month), 
+              class: "btn btn-secondary btn-sm", style: "text-align: center;" do %>
+          This Month
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Usage Tips -->
+<div class="card" style="margin-top: 1.5rem;">
+  <div class="card-header">
+    <h3>📋 Export Tips</h3>
+  </div>
+  <div class="card-body" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+    <div>
+      <strong style="font-size: 0.75rem; color: #1e293b;">CSV Format</strong>
+      <p style="font-size: 0.7rem; color: #64748b; margin: 0.25rem 0 0 0;">
+        CSV files can be opened in Excel, Google Sheets, or any spreadsheet application.
+      </p>
+    </div>
+    <div>
+      <strong style="font-size: 0.75rem; color: #1e293b;">Filter First</strong>
+      <p style="font-size: 0.7rem; color: #64748b; margin: 0.25rem 0 0 0;">
+        Apply filters before exporting to get only the logs you need.
+      </p>
+    </div>
+    <div>
+      <strong style="font-size: 0.75rem; color: #1e293b;">Large Exports</strong>
+      <p style="font-size: 0.7rem; color: #64748b; margin: 0.25rem 0 0 0;">
+        For large datasets, consider filtering by date range to reduce file size.
+      </p>
+    </div>
+    <div>
+      <strong style="font-size: 0.75rem; color: #1e293b;">Data Retention</strong>
+      <p style="font-size: 0.7rem; color: #64748b; margin: 0.25rem 0 0 0;">
+        Exported logs are for your records. The system retains logs for 1-2 years.
+      </p>
+    </div>
+  </div>
+</div>
