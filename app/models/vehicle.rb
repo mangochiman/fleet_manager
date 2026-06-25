@@ -8,7 +8,7 @@ class Vehicle < ApplicationRecord
   has_many :expenses, dependent: :restrict_with_exception
   
   # PaperTrail for versioning
-  has_paper_trail
+  #has_paper_trail
   
   # Validations
   validates :registration_number, presence: true, uniqueness: true

@@ -300,7 +300,7 @@
   .pl-badge.inactive { background: var(--border);  color: var(--ink-3); }
 
   /* ── Action buttons ── */
-  .pl-action-group { display: flex; gap: 0.35rem; }
+  .pl-action-group { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 
   .pl-act {
     display: inline-flex;
@@ -317,6 +317,7 @@
     color: var(--ink-3);
     transition: all 0.12s;
     white-space: nowrap;
+    cursor: pointer;
   }
 
   .pl-act:hover { border-color: var(--ink-2); color: var(--ink); background: var(--paper); }
@@ -456,6 +457,7 @@
     display: flex;
     gap: 0.5rem;
     margin-top: 0.75rem;
+    flex-wrap: wrap;
   }
 
   .pl-card-actions .pl-act { flex: 1; justify-content: center; }
@@ -562,9 +564,9 @@
                   <%= link_to "View", product, class: "pl-act" %>
                   <%= link_to "Edit", edit_product_path(product), class: "pl-act" %>
                   <% if product.active? %>
-                    <%= link_to "Deactivate", toggle_status_product_path(product), method: :patch, class: "pl-act warning", data: { confirm: "Deactivate this product? It will no longer appear in sales forms." } %>
+                    <%= button_to "Deactivate", toggle_status_product_path(product), method: :patch, class: "pl-act warning", form: { data: { turbo_confirm: "Deactivate this product? It will no longer appear in sales forms." } } %>
                   <% else %>
-                    <%= link_to "Activate", toggle_status_product_path(product), method: :patch, class: "pl-act success", data: { confirm: "Activate this product?" } %>
+                    <%= button_to "Activate", toggle_status_product_path(product), method: :patch, class: "pl-act success", form: { data: { turbo_confirm: "Activate this product?" } } %>
                   <% end %>
                 </div>
               </td>
@@ -626,9 +628,9 @@
             <%= link_to "View", product, class: "pl-act" %>
             <%= link_to "Edit", edit_product_path(product), class: "pl-act" %>
             <% if product.active? %>
-              <%= link_to "Deactivate", toggle_status_product_path(product), method: :patch, class: "pl-act warning", data: { confirm: "Deactivate this product?" } %>
+              <%= button_to "Deactivate", toggle_status_product_path(product), method: :patch, class: "pl-act warning", form: { data: { turbo_confirm: "Deactivate this product?" } } %>
             <% else %>
-              <%= link_to "Activate", toggle_status_product_path(product), method: :patch, class: "pl-act success", data: { confirm: "Activate this product?" } %>
+              <%= button_to "Activate", toggle_status_product_path(product), method: :patch, class: "pl-act success", form: { data: { turbo_confirm: "Activate this product?" } } %>
             <% end %>
           </div>
         </div>

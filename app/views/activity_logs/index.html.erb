@@ -1,97 +1,546 @@
-<!-- app/views/activity_logs/index.html.erb -->
-<div class="page-header">
-  <h1>Activity Logs</h1>
-  <p>System audit trail - Track all actions performed in the system</p>
-</div>
 
-<!-- Filters -->
-<div class="card" style="margin-bottom: 1.5rem;">
-  <div class="card-header">
-    <h3>Filter Logs</h3>
-  </div>
-  <div class="card-body">
-    <%= form_tag activity_logs_path, method: :get, class: "form" do %>
-      <div class="grid grid-3">
-        <div class="form-group">
-          <%= label_tag :action_type, "Action Type" %>
-          <%= select_tag :action_type, 
-                options_for_select([["All Actions", ""]] + ActivityLog::ACTION_TYPES.map { |k, v| [v, k] }, params[:action_type]),
-                class: "form-control" %>
-        </div>
-        
-        <div class="form-group">
-          <%= label_tag :user_id, "User" %>
-          <%= select_tag :user_id, 
-                options_for_select([["All Users", ""]] + @users.map { |u| [u.name, u.id] }, params[:user_id]),
-                class: "form-control" %>
-        </div>
-        
-        <div class="form-group">
-          <%= label_tag :resource_type, "Resource Type" %>
-          <%= select_tag :resource_type, 
-                options_for_select([["All Resources", ""]] + @resource_types.map { |r| [r, r] }, params[:resource_type]),
-                class: "form-control" %>
-        </div>
-        
-        <div class="form-group">
-          <%= label_tag :start_date, "Start Date" %>
-          <%= date_field_tag :start_date, params[:start_date], class: "form-control" %>
-        </div>
-        
-        <div class="form-group">
-          <%= label_tag :end_date, "End Date" %>
-          <%= date_field_tag :end_date, params[:end_date], class: "form-control" %>
-        </div>
-        
-        <div class="form-group">
-          <%= label_tag :search, "Search" %>
-          <%= text_field_tag :search, params[:search], class: "form-control", placeholder: "Search in details..." %>
-        </div>
-      </div>
-      
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;">
-        <%= submit_tag "Apply Filters", class: "btn btn-primary" %>
-        <%= link_to "Clear Filters", activity_logs_path, class: "btn btn-secondary" %>
-        <%= link_to "Export CSV", activity_logs_export_path(params: request.query_parameters), class: "btn btn-success" %>
-      </div>
-    <% end %>
-  </div>
-</div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
-<!-- Stats Summary -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
-    <div style="font-size: 0.75rem; color: #64748b;">Total Logs</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #1e293b;"><%= @activity_logs.total_entries %></div>
-  </div>
-  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
-    <div style="font-size: 0.75rem; color: #64748b;">Today</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #1e293b;"><%= ActivityLog.where(created_at: Date.current.beginning_of_day..Date.current.end_of_day).count %></div>
-  </div>
-  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
-    <div style="font-size: 0.75rem; color: #64748b;">This Week</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #1e293b;"><%= ActivityLog.this_week.count %></div>
-  </div>
-  <div style="background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
-    <div style="font-size: 0.75rem; color: #64748b;">This Month</div>
-    <div style="font-size: 1.5rem; font-weight: 700; color: #1e293b;"><%= ActivityLog.this_month.count %></div>
-  </div>
-</div>
+  :root {
+    --ink:      #0f1117;
+    --ink-2:    #2a2d38;
+    --ink-3:    #5c6070;
+    --paper:    #f7f6f2;
+    --surface:  #ffffff;
+    --border:   #e4e2da;
+    --green:    #1a9e6e;
+    --green-l:  #e8f7f2;
+    --red:      #d63d2f;
+    --red-l:    #fdf0ee;
+    --amber:    #c07b1a;
+    --amber-l:  #fef6e7;
+    --blue:     #2563eb;
+    --blue-l:   #eff4ff;
+    --purple:   #7c3aed;
+    --purple-l: #ede9fe;
+  }
 
-<!-- Activity Logs Table -->
-<div class="card">
-  <div class="card-header">
-    <h3>All Activities</h3>
-    <span style="font-size: 0.875rem; color: #64748b;">
-      <%= @activity_logs.total_entries %> records found
-    </span>
+  .al-wrap * { box-sizing: border-box; }
+  .al-wrap {
+    font-family: 'Inconsolata', monospace;
+    background: var(--paper);
+    min-height: 100vh;
+    padding: 1rem;
+    color: var(--ink);
+  }
+
+  /* ── Header ── */
+  .al-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1.5px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .al-eyebrow {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.3rem;
+  }
+
+  .al-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .al-subtitle {
+    font-size: 0.6rem;
+    color: var(--ink-3);
+    margin-top: 0.3rem;
+    letter-spacing: 0.02em;
+  }
+
+  .al-export-link {
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+    align-self: flex-start;
+    padding-top: 0.2rem;
+  }
+  .al-export-link:hover { text-decoration: underline; }
+
+  /* ── Stat Cards ── */
+  .al-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .al-stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 0.75rem;
+    position: relative;
+    overflow: hidden;
+    animation: statIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .al-stat::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .al-stat.blue::before   { background: var(--blue); }
+  .al-stat.green::before  { background: var(--green); }
+  .al-stat.amber::before  { background: var(--amber); }
+  .al-stat.purple::before { background: var(--purple); }
+
+  .al-stat-label {
+    font-size: 0.55rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.25rem;
+  }
+
+  .al-stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .al-stat.blue   .al-stat-value { color: var(--blue); }
+  .al-stat.green  .al-stat-value { color: var(--green); }
+  .al-stat.amber  .al-stat-value { color: var(--amber); }
+  .al-stat.purple .al-stat-value { color: var(--purple); }
+
+  @keyframes statIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Panel ── */
+  .al-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.85rem;
+  }
+
+  .al-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .al-panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  .al-record-count {
+    font-size: 0.6rem;
+    color: var(--ink-3);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Filter section ── */
+  .al-filter-section {
+    padding: 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .al-filter-section summary {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0;
+  }
+
+  .al-filter-section[open] summary { margin-bottom: 0.75rem; }
+
+  .al-filter-section summary::-webkit-details-marker { display: none; }
+  .al-filter-section summary::before {
+    content: '▸';
+    font-size: 0.55rem;
+    color: var(--ink-3);
+    transition: transform 0.15s;
+  }
+  .al-filter-section[open] summary::before { transform: rotate(90deg); }
+
+  .al-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 0.625rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .al-field label {
+    display: block;
+    font-size: 0.55rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.25rem;
+  }
+
+  .al-field select,
+  .al-field input[type="date"],
+  .al-field input[type="text"] {
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--ink);
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: none; -webkit-appearance: none;
+  }
+
+  .al-field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%235c6070' d='M5 7L1 3h8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.4rem center;
+    padding-right: 1.5rem;
+  }
+
+  .al-field select:focus,
+  .al-field input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.08);
+  }
+
+  .al-filter-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .al-btn {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 3px;
+    padding: 0.375rem 0.75rem;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .al-btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .al-btn-primary:hover { background: var(--ink-2); border-color: var(--ink-2); }
+
+  .al-btn-ghost {
+    background: transparent;
+    color: var(--ink-3);
+    border-color: var(--border);
+  }
+  .al-btn-ghost:hover { background: var(--paper); color: var(--ink); }
+
+  /* ── Table ── */
+  .al-table-wrap { overflow-x: auto; }
+
+  table.al-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+  }
+
+  table.al-table thead tr {
+    background: var(--paper);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  table.al-table th {
+    text-align: left;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  table.al-table td {
+    padding: 0.5rem 0.65rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    color: var(--ink-2);
+  }
+
+  table.al-table tbody tr:last-child td { border-bottom: none; }
+  table.al-table tbody tr:hover { background: var(--paper); }
+
+  .al-td-time {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--ink-3) !important;
+    font-size: 0.65rem !important;
+  }
+
+  .al-td-user {
+    font-weight: 600;
+    color: var(--ink) !important;
+  }
+
+  .al-td-details {
+    max-width: 260px;
+    word-break: break-word;
+    color: var(--ink-3) !important;
+    line-height: 1.45;
+  }
+
+  .al-td-ip {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-3) !important;
+    font-size: 0.65rem !important;
+  }
+
+  .al-link {
+    color: var(--blue);
+    text-decoration: none;
+  }
+  .al-link:hover { text-decoration: underline; }
+
+  /* ── Badges ── */
+  .al-badge {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    border-radius: 2px;
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .al-badge-success { background: var(--green-l); color: var(--green); }
+  .al-badge-info    { background: var(--blue-l);  color: var(--blue);  }
+  .al-badge-warning { background: var(--amber-l); color: var(--amber); }
+  .al-badge-danger  { background: var(--red-l);   color: var(--red);   }
+  .al-badge-purple  { background: var(--purple-l);color: var(--purple);}
+  .al-badge-default { background: var(--paper);   color: var(--ink-3); border: 1px solid var(--border); }
+
+  /* ── Empty state ── */
+  .al-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--ink-3);
+    font-size: 0.75rem;
+  }
+
+  /* ── Pagination ── */
+  .al-pagination {
+    padding: 0.7rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .al-pagination .pagination {
+    display: flex;
+    gap: 0.2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+
+  .al-pagination .pagination li a,
+  .al-pagination .pagination li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0 0.4rem;
+    border-radius: 3px;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink-3);
+    text-decoration: none;
+    transition: background 0.1s, color 0.1s;
+  }
+
+  .al-pagination .pagination li a:hover { background: var(--paper); color: var(--ink); }
+  .al-pagination .pagination li.active span { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .al-pagination .pagination li.disabled span { opacity: 0.35; pointer-events: none; }
+
+  /* ── Responsive ── */
+  @media (min-width: 768px) {
+    .al-wrap { padding: 1.5rem; }
+    .al-title { font-size: 1.5rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .al-wrap { padding: 2rem; }
+    .al-title { font-size: 2rem; }
+    .al-stats { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    table.al-table thead { display: none; }
+    table.al-table tbody tr {
+      display: block;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+    table.al-table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    table.al-table td:last-child { border-bottom: none; }
+    table.al-table td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: var(--ink-2);
+      margin-right: 1rem;
+      font-size: 0.55rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+  }
+</style>
+
+<div class="al-wrap">
+
+  <!-- Header -->
+  <div class="al-header">
+    <div>
+      <p class="al-eyebrow">Fleet Management</p>
+      <h1 class="al-title">Activity Logs</h1>
+      <p class="al-subtitle">System audit trail — track every action performed</p>
+    </div>
+    <%= link_to "Export CSV →", export_activity_logs_path(params: request.query_parameters), class: "al-export-link" %>
   </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="data-table">
+
+  <!-- Stat Cards -->
+  <div class="al-stats">
+    <div class="al-stat blue" style="animation-delay: 0s;">
+      <div class="al-stat-label">Total Logs</div>
+      <div class="al-stat-value"><%= @activity_logs.total_entries %></div>
+    </div>
+    <div class="al-stat green" style="animation-delay: 0.04s;">
+      <div class="al-stat-label">Today</div>
+      <div class="al-stat-value"><%= ActivityLog.where(created_at: Date.current.beginning_of_day..Date.current.end_of_day).count %></div>
+    </div>
+    <div class="al-stat amber" style="animation-delay: 0.08s;">
+      <div class="al-stat-label">This Week</div>
+      <div class="al-stat-value"><%= ActivityLog.this_week.count %></div>
+    </div>
+    <div class="al-stat purple" style="animation-delay: 0.12s;">
+      <div class="al-stat-label">This Month</div>
+      <div class="al-stat-value"><%= ActivityLog.this_month.count %></div>
+    </div>
+  </div>
+
+  <!-- Logs Panel -->
+  <div class="al-panel">
+    <div class="al-panel-head">
+      <h3 class="al-panel-title">All Activity</h3>
+      <span class="al-record-count"><%= @activity_logs.total_entries %> records found</span>
+    </div>
+
+    <!-- Filters (collapsible) -->
+    <div class="al-filter-section">
+      <details>
+        <summary>Filter Logs</summary>
+        <%= form_tag activity_logs_path, method: :get do %>
+          <div class="al-filter-grid">
+            <div class="al-field">
+              <%= label_tag :action_type, "Action Type" %>
+              <%= select_tag :action_type,
+                    options_for_select([["All actions", ""]] + ActivityLog::ACTION_TYPES.map { |k, v| [v, k] }, params[:action_type]) %>
+            </div>
+            <div class="al-field">
+              <%= label_tag :user_id, "User" %>
+              <%= select_tag :user_id,
+                    options_for_select([["All users", ""]] + @users.map { |u| [u.name, u.id] }, params[:user_id]) %>
+            </div>
+            <div class="al-field">
+              <%= label_tag :resource_type, "Resource Type" %>
+              <%= select_tag :resource_type,
+                    options_for_select([["All resources", ""]] + @resource_types.map { |r| [r, r] }, params[:resource_type]) %>
+            </div>
+            <div class="al-field">
+              <%= label_tag :start_date, "From" %>
+              <%= date_field_tag :start_date, params[:start_date] %>
+            </div>
+            <div class="al-field">
+              <%= label_tag :end_date, "To" %>
+              <%= date_field_tag :end_date, params[:end_date] %>
+            </div>
+            <div class="al-field">
+              <%= label_tag :search, "Search Details" %>
+              <%= text_field_tag :search, params[:search], placeholder: "Keyword…" %>
+            </div>
+          </div>
+          <div class="al-filter-actions">
+            <%= submit_tag "Apply Filters", class: "al-btn al-btn-primary" %>
+            <%= link_to "Clear", activity_logs_path, class: "al-btn al-btn-ghost" %>
+          </div>
+        <% end %>
+      </details>
+    </div>
+
+    <!-- Table -->
+    <div class="al-table-wrap">
+      <table class="al-table">
         <thead>
           <tr>
-            <th>Date & Time</th>
+            <th>Date &amp; Time</th>
             <th>User</th>
             <th>Action</th>
             <th>Resource</th>
@@ -103,43 +552,44 @@
           <% if @activity_logs.any? %>
             <% @activity_logs.each do |log| %>
               <tr>
-                <td><%= log.display_time %></td>
-                <td><%= log.user_name %></td>
-                <td>
-                  <span class="badge badge-<%= log.action_color %>">
+                <td class="al-td-time" data-label="Date & Time"><%= log.display_time %></td>
+                <td class="al-td-user" data-label="User"><%= log.user_name %></td>
+                <td data-label="Action">
+                  <span class="al-badge al-badge-<%= log.action_color %>">
                     <%= log.action_name %>
                   </span>
                 </td>
-                <td>
+                <td data-label="Resource">
                   <% if log.resource_link %>
-                    <%= link_to log.resource_display_name, log.resource_link, class: "link" %>
+                    <%= link_to log.resource_display_name, log.resource_link, class: "al-link" %>
                   <% else %>
                     <%= log.resource_display_name %>
                   <% end %>
                 </td>
-                <td style="max-width: 300px; word-wrap: break-word;"><%= log.details %></td>
-                <td><%= log.ip_address || '—' %></td>
+                <td class="al-td-details" data-label="Details"><%= log.details %></td>
+                <td class="al-td-ip" data-label="IP Address"><%= log.ip_address || '—' %></td>
               </tr>
             <% end %>
           <% else %>
             <tr>
-              <td colspan="6" style="text-align: center; padding: 2rem; color: #64748b;">
-                No activity logs found matching your filters.
+              <td colspan="6">
+                <div class="al-empty">No activity logs found matching your filters.</div>
               </td>
             </tr>
           <% end %>
         </tbody>
       </table>
     </div>
+
+    <% if @activity_logs.total_entries > 0 %>
+      <div class="al-pagination">
+        <%= will_paginate @activity_logs,
+              renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
+              previous_label: '← Prev',
+              next_label: 'Next →',
+              class: 'pagination' %>
+      </div>
+    <% end %>
   </div>
-  
-  <% if @activity_logs.total_entries > 0 %>
-    <div style="padding: 1rem; border-top: 1px solid #e2e8f0;">
-      <%= will_paginate @activity_logs,
-            renderer: WillPaginate::ActionView::BootstrapLinkRenderer,
-            previous_label: '← Previous',
-            next_label: 'Next →',
-            class: 'pagination' %>
-    </div>
-  <% end %>
+
 </div>

@@ -1,194 +1,513 @@
 <!-- app/views/activity_logs/export.html.erb -->
-<div class="page-header">
-  <h1>Export Activity Logs</h1>
-  <p>Download activity logs in various formats</p>
-</div>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inconsolata:wght@300;400;500&display=swap');
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto;">
-  
-  <!-- Export Options -->
-  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">EXPORT OPTIONS</h3>
-    
-    <div style="display: flex; flex-direction: column; gap: 1rem;">
-      <!-- CSV Export -->
-      <div style="padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border-left: 3px solid #10b981;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <strong style="font-size: 1rem;">CSV Export</strong>
-            <p style="font-size: 0.75rem; color: #64748b; margin: 0.25rem 0 0 0;">
-              Download logs in CSV format for Excel or Google Sheets
-            </p>
-          </div>
-          <%= link_to activity_logs_export_path(format: :csv, params: request.query_parameters), 
-                class: "btn btn-success btn-sm" do %>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; margin-right: 0.25rem;">
+  :root {
+    --ink:     #0f1117;
+    --ink-2:   #2a2d38;
+    --ink-3:   #5c6070;
+    --paper:   #f7f6f2;
+    --surface: #ffffff;
+    --border:  #e4e2da;
+    --green:   #1a9e6e;
+    --green-l: #e8f7f2;
+    --red:     #d63d2f;
+    --red-l:   #fdf0ee;
+    --amber:   #c07b1a;
+    --amber-l: #fef6e7;
+    --blue:    #2563eb;
+    --blue-l:  #eff4ff;
+  }
+
+  .export-wrap {
+    font-family: 'Inconsolata', monospace;
+    background: var(--paper);
+    min-height: 100vh;
+    padding: 1rem;
+    color: var(--ink);
+  }
+
+  /* ── Header ── */
+  .export-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .export-eyebrow {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 0.3rem;
+  }
+
+  .export-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .export-subtitle {
+    font-size: 0.65rem;
+    color: var(--ink-3);
+    margin-top: 0.3rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Grid Layout ── */
+  .export-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  /* ── Panels ── */
+  .export-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    animation: panelIn 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  .export-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .export-panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  .export-panel-body {
+    padding: 0.85rem;
+  }
+
+  @keyframes panelIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Buttons ── */
+  .export-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.65rem 0.95rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'Inconsolata', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    width: 100%;
+  }
+
+  .export-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .export-btn.primary {
+    background: var(--green);
+    color: var(--surface);
+    border-color: var(--green);
+  }
+
+  .export-btn.primary:hover {
+    background: #158f63;
+    border-color: #158f63;
+  }
+
+  .export-btn.secondary {
+    background: var(--surface);
+    color: var(--ink);
+    border-color: var(--border);
+  }
+
+  .export-btn.secondary:hover {
+    background: var(--paper);
+  }
+
+  /* ── Filter Summary ── */
+  .filter-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: var(--paper);
+    border-radius: 3px;
+    margin-bottom: 0.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .filter-value {
+    font-weight: 500;
+    font-size: 0.65rem;
+    color: var(--ink);
+    word-break: break-word;
+    max-width: 60%;
+  }
+
+  /* ── Info Box ── */
+  .info-box {
+    padding: 0.85rem;
+    border-radius: 3px;
+    border-left: 3px solid;
+    background-color: rgba(26, 158, 110, 0.05);
+    border-left-color: var(--green);
+    margin: 0.75rem 0;
+  }
+
+  .info-box.empty {
+    text-align: center;
+    padding: 1.5rem 0.85rem;
+  }
+
+  .info-box-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .info-box-text {
+    font-size: 0.65rem;
+    color: var(--ink-3);
+    margin: 0;
+  }
+
+  /* ── Record Count ── */
+  .record-count {
+    text-align: center;
+    padding: 1rem 0;
+    border-top: 1.5px solid var(--border);
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .record-count-label {
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .record-count-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  /* ── Tips Section ── */
+  .tips-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .tip-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tip-item:last-child {
+    border-bottom: none;
+  }
+
+  .tip-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0 0 0.25rem;
+  }
+
+  .tip-text {
+    font-size: 0.65rem;
+    color: var(--ink-3);
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  /* ── Button Grid ── */
+  .btn-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .btn-grid.double {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* ── SVG Icon ── */
+  .btn-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+  }
+
+  /* Tablet and up */
+  @media (min-width: 768px) {
+    .export-wrap {
+      padding: 1.5rem;
+    }
+
+    .export-title {
+      font-size: 1.5rem;
+    }
+
+    .export-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .btn-grid.double {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .tips-section {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Desktop */
+  @media (min-width: 1024px) {
+    .export-wrap {
+      padding: 2rem;
+    }
+
+    .export-title {
+      font-size: 2rem;
+    }
+
+    .export-grid {
+      grid-template-columns: 1fr;
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .tips-section {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="export-wrap">
+
+  <!-- Header -->
+  <div class="export-header">
+    <p class="export-eyebrow">Activity Logs</p>
+    <h1 class="export-title">Export Logs</h1>
+    <p class="export-subtitle">Download activity logs in CSV format for analysis and archival</p>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="export-grid">
+
+    <!-- Export Options -->
+    <div class="export-panel">
+      <div class="export-panel-head">
+        <h3 class="export-panel-title">Export Options</h3>
+      </div>
+      <div class="export-panel-body">
+        <div class="info-box">
+          <strong style="font-size: 0.7rem; color: var(--green); display: block; margin-bottom: 0.5rem;">CSV EXPORT</strong>
+          <p style="font-size: 0.65rem; color: var(--ink-3); margin: 0 0 0.75rem; line-height: 1.4;">
+            Download logs in CSV format compatible with Excel, Google Sheets, and other spreadsheet applications
+          </p>
+          <%= link_to export_activity_logs_path(format: :csv, params: request.query_parameters), 
+                class: "export-btn primary" do %>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
             </svg>
             Download CSV
           <% end %>
-        </div>
-        <div style="margin-top: 0.5rem; font-size: 0.7rem; color: #94a3b8;">
-          <span>Includes: Date, User, Action, Resource, Details, IP Address</span>
-        </div>
-      </div>
-      
-      <!-- PDF Export (Future) -->
-      <div style="padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border-left: 3px solid #ef4444; opacity: 0.6;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <strong style="font-size: 1rem;">PDF Export</strong>
-            <p style="font-size: 0.75rem; color: #64748b; margin: 0.25rem 0 0 0;">
-              Download logs in PDF format for printing and archiving
-            </p>
+          <div style="font-size: 0.6rem; color: var(--ink-3); text-align: center; margin-top: 0.5rem;">
+            Includes: Date, User, Action, Resource, Details, IP, User Agent
           </div>
-          <span class="badge badge-inactive">Coming Soon</span>
-        </div>
-      </div>
-      
-      <!-- Excel Export (Future) -->
-      <div style="padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border-left: 3px solid #2563eb; opacity: 0.6;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <strong style="font-size: 1rem;">Excel Export</strong>
-            <p style="font-size: 0.75rem; color: #64748b; margin: 0.25rem 0 0 0;">
-              Download logs in Excel format with formatting
-            </p>
-          </div>
-          <span class="badge badge-inactive">Coming Soon</span>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Current Filters Summary -->
-  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">CURRENT FILTERS</h3>
-    
-    <% if params[:action_type].present? || params[:user_id].present? || params[:resource_type].present? || 
-          params[:start_date].present? || params[:end_date].present? || params[:search].present? %>
-      
-      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-        <% if params[:action_type].present? %>
-          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
-            <span style="color: #64748b; font-size: 0.75rem;">Action Type:</span>
-            <span style="font-weight: 500; font-size: 0.75rem;"><%= ActivityLog::ACTION_TYPES[params[:action_type]] || params[:action_type] %></span>
-          </div>
-        <% end %>
-        
-        <% if params[:user_id].present? %>
-          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
-            <span style="color: #64748b; font-size: 0.75rem;">User:</span>
-            <span style="font-weight: 500; font-size: 0.75rem;"><%= User.find_by(id: params[:user_id])&.name || "User ##{params[:user_id]}" %></span>
-          </div>
-        <% end %>
-        
-        <% if params[:resource_type].present? %>
-          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
-            <span style="color: #64748b; font-size: 0.75rem;">Resource Type:</span>
-            <span style="font-weight: 500; font-size: 0.75rem;"><%= params[:resource_type] %></span>
-          </div>
-        <% end %>
-        
-        <% if params[:start_date].present? %>
-          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
-            <span style="color: #64748b; font-size: 0.75rem;">Start Date:</span>
-            <span style="font-weight: 500; font-size: 0.75rem;"><%= Date.parse(params[:start_date]).strftime("%B %d, %Y") rescue params[:start_date] %></span>
-          </div>
-        <% end %>
-        
-        <% if params[:end_date].present? %>
-          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
-            <span style="color: #64748b; font-size: 0.75rem;">End Date:</span>
-            <span style="font-weight: 500; font-size: 0.75rem;"><%= Date.parse(params[:end_date]).strftime("%B %d, %Y") rescue params[:end_date] %></span>
-          </div>
-        <% end %>
-        
-        <% if params[:search].present? %>
-          <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: #f8fafc; border-radius: 0.5rem;">
-            <span style="color: #64748b; font-size: 0.75rem;">Search:</span>
-            <span style="font-weight: 500; font-size: 0.75rem;">"<%= params[:search] %>"</span>
-          </div>
-        <% end %>
+    <!-- Current Filters -->
+    <div class="export-panel">
+      <div class="export-panel-head">
+        <h3 class="export-panel-title">Current Filters</h3>
       </div>
-      
-      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-        <%= link_to "Clear All Filters", activity_logs_export_path, class: "btn btn-secondary btn-sm", style: "width: 100%; text-align: center;" %>
+      <div class="export-panel-body">
+        <% if params[:action_type].present? || params[:user_id].present? || params[:resource_type].present? || 
+              params[:start_date].present? || params[:end_date].present? || params[:search].present? %>
+          
+          <div style="margin-bottom: 1rem;">
+            <% if params[:action_type].present? %>
+              <div class="filter-item">
+                <span class="filter-label">Action Type</span>
+                <span class="filter-value"><%= ActivityLog::ACTION_TYPES[params[:action_type]] || params[:action_type] %></span>
+              </div>
+            <% end %>
+            
+            <% if params[:user_id].present? %>
+              <div class="filter-item">
+                <span class="filter-label">User</span>
+                <span class="filter-value"><%= User.find_by(id: params[:user_id])&.name || "User ##{params[:user_id]}" %></span>
+              </div>
+            <% end %>
+            
+            <% if params[:resource_type].present? %>
+              <div class="filter-item">
+                <span class="filter-label">Resource Type</span>
+                <span class="filter-value"><%= params[:resource_type] %></span>
+              </div>
+            <% end %>
+            
+            <% if params[:start_date].present? %>
+              <div class="filter-item">
+                <span class="filter-label">Start Date</span>
+                <span class="filter-value"><%= Date.parse(params[:start_date]).strftime("%b %d, %Y") rescue params[:start_date] %></span>
+              </div>
+            <% end %>
+            
+            <% if params[:end_date].present? %>
+              <div class="filter-item">
+                <span class="filter-label">End Date</span>
+                <span class="filter-value"><%= Date.parse(params[:end_date]).strftime("%b %d, %Y") rescue params[:end_date] %></span>
+              </div>
+            <% end %>
+            
+            <% if params[:search].present? %>
+              <div class="filter-item">
+                <span class="filter-label">Search</span>
+                <span class="filter-value">"<%= params[:search] %>"</span>
+              </div>
+            <% end %>
+          </div>
+          
+          <%= link_to "Clear All Filters", export_activity_logs_path, class: "export-btn secondary" %>
+          
+        <% else %>
+          <div class="info-box empty">
+            <div class="info-box-icon">🔍</div>
+            <p class="info-box-text" style="margin: 0; font-weight: 600;">No filters applied</p>
+            <p class="info-box-text">All logs will be exported</p>
+          </div>
+        <% end %>
+
+        <!-- Record Count -->
+        <div class="record-count">
+          <span class="record-count-label">Records to Export</span>
+          <span class="record-count-value"><%= @activity_logs.try(:count) || 0 %></span>
+        </div>
       </div>
-      
-    <% else %>
-      <div style="text-align: center; padding: 1.5rem; color: #64748b;">
-        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
-        <p>No filters applied</p>
-        <p style="font-size: 0.75rem;">All logs will be exported</p>
-      </div>
-    <% end %>
-    
-    <!-- Record Count -->
-    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; text-align: center;">
-      <span style="font-size: 0.75rem; color: #64748b;">Records to export:</span>
-      <span style="font-size: 1.25rem; font-weight: 700; color: #1e293b; display: block;"><%= @activity_logs.try(:count) || 0 %></span>
     </div>
+
+    <!-- Quick Actions -->
+    <div class="export-panel">
+      <div class="export-panel-head">
+        <h3 class="export-panel-title">Quick Actions</h3>
+      </div>
+      <div class="export-panel-body">
+        <div class="btn-grid">
+          <%= link_to activity_logs_path, class: "export-btn secondary" do %>
+            ← Back to Logs
+          <% end %>
+          
+          <%= link_to export_activity_logs_path(format: :csv, params: request.query_parameters), 
+                class: "export-btn primary" do %>
+            ⬇ Download CSV
+          <% end %>
+        </div>
+
+        <div class="btn-grid double" style="margin-top: 0.5rem;">
+          <%= link_to export_activity_logs_path(start_date: Date.current.beginning_of_week, format: :csv), 
+                class: "export-btn secondary", style: "padding: 0.5rem;" do %>
+            This Week
+          <% end %>
+          
+          <%= link_to export_activity_logs_path(start_date: Date.current.beginning_of_month, format: :csv), 
+                class: "export-btn secondary", style: "padding: 0.5rem;" do %>
+            This Month
+          <% end %>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Quick Actions -->
-  <div style="background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-    <h3 style="font-size: 0.875rem; font-weight: 600; color: #64748b; margin-bottom: 0.75rem;">QUICK ACTIONS</h3>
-    
-    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-      <%= link_to activity_logs_path, class: "btn btn-secondary", style: "width: 100%; text-align: center;" do %>
-        ← Back to Activity Logs
-      <% end %>
-      
-      <%= link_to activity_logs_export_path(format: :csv, params: request.query_parameters), 
-            class: "btn btn-success", style: "width: 100%; text-align: center;" do %>
-        ⬇️ Download All (CSV)
-      <% end %>
-      
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-        <%= link_to activity_logs_path(start_date: Date.current.beginning_of_week), 
-              class: "btn btn-secondary btn-sm", style: "text-align: center;" do %>
-          This Week
-        <% end %>
-        <%= link_to activity_logs_path(start_date: Date.current.beginning_of_month), 
-              class: "btn btn-secondary btn-sm", style: "text-align: center;" do %>
-          This Month
-        <% end %>
+  <!-- Export Tips -->
+  <div class="export-panel">
+    <div class="export-panel-head">
+      <h3 class="export-panel-title">📋 Export Tips</h3>
+    </div>
+    <div class="export-panel-body">
+      <div class="tips-section">
+        <div class="tip-item">
+          <h4 class="tip-title">CSV Format</h4>
+          <p class="tip-text">CSV files can be opened in Excel, Google Sheets, or any spreadsheet application. Perfect for analysis and reporting.</p>
+        </div>
+        <div class="tip-item">
+          <h4 class="tip-title">Filter First</h4>
+          <p class="tip-text">Apply filters before exporting to get only the logs you need. This reduces file size and makes analysis easier.</p>
+        </div>
+        <div class="tip-item">
+          <h4 class="tip-title">Large Exports</h4>
+          <p class="tip-text">For large datasets, consider filtering by date range to reduce file size and improve download speed.</p>
+        </div>
+        <div class="tip-item">
+          <h4 class="tip-title">Data Retention</h4>
+          <p class="tip-text">Exported logs are for your records. The system retains logs for 1-2 years for compliance and auditing purposes.</p>
+        </div>
       </div>
     </div>
   </div>
 
 </div>
 
-<!-- Usage Tips -->
-<div class="card" style="margin-top: 1.5rem;">
-  <div class="card-header">
-    <h3>📋 Export Tips</h3>
-  </div>
-  <div class="card-body" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-    <div>
-      <strong style="font-size: 0.75rem; color: #1e293b;">CSV Format</strong>
-      <p style="font-size: 0.7rem; color: #64748b; margin: 0.25rem 0 0 0;">
-        CSV files can be opened in Excel, Google Sheets, or any spreadsheet application.
-      </p>
-    </div>
-    <div>
-      <strong style="font-size: 0.75rem; color: #1e293b;">Filter First</strong>
-      <p style="font-size: 0.7rem; color: #64748b; margin: 0.25rem 0 0 0;">
-        Apply filters before exporting to get only the logs you need.
-      </p>
-    </div>
-    <div>
-      <strong style="font-size: 0.75rem; color: #1e293b;">Large Exports</strong>
-      <p style="font-size: 0.7rem; color: #64748b; margin: 0.25rem 0 0 0;">
-        For large datasets, consider filtering by date range to reduce file size.
-      </p>
-    </div>
-    <div>
-      <strong style="font-size: 0.75rem; color: #1e293b;">Data Retention</strong>
-      <p style="font-size: 0.7rem; color: #64748b; margin: 0.25rem 0 0 0;">
-        Exported logs are for your records. The system retains logs for 1-2 years.
-      </p>
-    </div>
-  </div>
-</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Subtle animation on load
+    const panels = document.querySelectorAll('.export-panel');
+    panels.forEach((panel, index) => {
+      panel.style.animationDelay = (index * 0.08) + 's';
+    });
+  });
+</script>

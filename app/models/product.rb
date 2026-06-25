@@ -6,7 +6,7 @@ class Product < ApplicationRecord
   has_many :sales, dependent: :restrict_with_exception
   
   # PaperTrail for versioning
-  has_paper_trail
+  #has_paper_trail
   
   # Validations
   validates :name, presence: true, uniqueness: true

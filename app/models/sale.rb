@@ -8,7 +8,7 @@ class Sale < ApplicationRecord
   has_many :payment_histories, dependent: :destroy
 
   # PaperTrail for versioning
-  has_paper_trail
+  #has_paper_trail
 
   before_validation :generate_transaction_id, on: :create
   before_validation :calculate_totals, on: :create

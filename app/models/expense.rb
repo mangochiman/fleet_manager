@@ -7,7 +7,7 @@ class Expense < ApplicationRecord
   has_one_attached :receipt
 
   # PaperTrail for versioning
-  has_paper_trail
+  #has_paper_trail
 
   validates :category, presence: true
   validates :amount, presence: true, numericality: { greater_than: 0 }
@@ -111,7 +111,7 @@ class Expense < ApplicationRecord
   end
 
   def display_amount
-    ActionController::Base.helpers.number_to_currency(amount)
+      ActionController::Base.helpers.number_to_currency(amount, unit: "MK ", format: "%u%n")
   end
 
   def mark_as_paid!(reference: nil, updated_by: nil)

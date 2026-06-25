@@ -1,4 +1,6 @@
 # app/controllers/activity_logs_controller.rb
+require 'csv'
+
 class ActivityLogsController < ApplicationController
   before_action :authenticate_user!
   before_action :authorize_super_admin!
@@ -77,7 +79,13 @@ class ActivityLogsController < ApplicationController
     
     respond_to do |format|
       format.csv do
-        send_data generate_csv, filename: "activity_logs_#{Date.current.strftime('%Y%m%d')}.csv"
+        send_data generate_csv, 
+                  filename: "activity_logs_#{Date.current.strftime('%Y%m%d')}.csv",
+                  type: 'text/csv',
+                  disposition: 'attachment'
+      end
+      format.html do
+        render :export
       end
     end
   end

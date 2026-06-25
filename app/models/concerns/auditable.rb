@@ -5,6 +5,11 @@ module Auditable
   included do
     # Enable PaperTrail for automatic versioning
     has_paper_trail
+    
+    # Callbacks for automatic audit logging
+    after_create :log_creation
+    after_update :log_update
+    after_destroy :log_destroy
   end
   
   # Class methods
@@ -44,12 +49,33 @@ module Auditable
     "#{self.class.name} ##{id}"
   end
   
+  # Log creation
+  def log_creation
+    log_activity("create_#{self.class.name.underscore}")
+  end
+  
+  # Log update with changes
+  def log_update
+    if saved_changes.present?
+      # Skip logging if only updated_at changed
+      return if saved_changes.keys == ['updated_at']
+      
+      changes = saved_changes.map do |attr, (old_val, new_val)|
+        # Skip timestamps for cleaner logs
+        next if attr == 'updated_at'
+        "#{attr}: #{old_val} → #{new_val}"
+      end.compact.join(", ")
+      
+      log_activity("update_#{self.class.name.underscore}", changes) if changes.present?
+    end
+  end
+  
   # Track deletion separately to preserve data
   def log_destroy
     log_activity("delete_#{self.class.name.underscore}")
   end
   
-  # Track changes with before/after values
+  # Track changes with before/after values (alternative method)
   def log_update_with_changes
     if saved_changes.present?
       changes_summary = saved_changes.map do |attr, (old_val, new_val)|

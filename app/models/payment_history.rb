@@ -8,7 +8,7 @@ class PaymentHistory < ApplicationRecord
   has_one_attached :proof_attachment  # For storing uploaded files
 
   # PaperTrail for versioning
-  has_paper_trail
+  #has_paper_trail
 
   validates :old_status, :new_status, presence: true
 

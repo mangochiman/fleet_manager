@@ -11,7 +11,10 @@ class ActivityLog < ApplicationRecord
   scope :by_user, ->(user_id) { where(user_id: user_id) }
   scope :by_action, ->(action) { where(action: action) }
   scope :by_date_range, ->(start_date, end_date) { where(created_at: start_date..end_date) }
-  scope :search_by_details, ->(query) { where("details ILIKE ?", "%#{query}%") }
+  
+  # Fix: Use LIKE instead of ILIKE for MySQL compatibility
+  scope :search_by_details, ->(query) { where("details LIKE ?", "%#{query}%") }
+  
   scope :this_week, -> { where(created_at: 1.week.ago..Time.current) }
   scope :this_month, -> { where(created_at: Time.current.beginning_of_month..Time.current.end_of_month) }
 
